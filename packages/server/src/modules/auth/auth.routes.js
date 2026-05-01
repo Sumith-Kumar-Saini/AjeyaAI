@@ -1,14 +1,10 @@
 import { Router } from 'express';
+import { authMiddleware } from '../../middleware/auth.middleware.js';
+import { getMe, login, signup } from './auth.controller.js';
+import { loginSchema, signupSchema, validate } from './auth.validation.js';
 
 export const authRoutes = Router();
 
-// TODO: Implement full signup logic in auth.controller.ts → auth.service.ts
-// authRoutes.post('/signup', validate(signupSchema), signup);
-
-// TODO: Implement full login logic in auth.controller.ts → auth.service.ts
-// authRoutes.post('/login', validate(loginSchema), login);
-
-// TODO: Implement protected route to fetch current user
-// authRoutes.get('/me', authMiddleware, (req, res) =>
-//   res.json({ success: true, data: req.user })
-// );
+authRoutes.post('/signup', validate(signupSchema), signup);
+authRoutes.post('/login', validate(loginSchema), login);
+authRoutes.get('/me', authMiddleware, getMe);

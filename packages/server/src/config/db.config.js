@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { env } from './env.config.js';
 import { logger } from '../utils/logger.js';
 
 const MONGO_OPTIONS = {
@@ -11,7 +10,7 @@ const MONGO_OPTIONS = {
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect(env.MONGODB_URI, MONGO_OPTIONS);
+    await mongoose.connect(process.env.MONGODB_URI);
     logger.info('MongoDB connected successfully');
   } catch (error) {
     logger.error({ error }, 'MongoDB connection failed');

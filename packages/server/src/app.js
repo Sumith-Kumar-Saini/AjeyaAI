@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import { env } from './config/env.config.js';
 import { requestLogger } from './middleware/requestLogger.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
