@@ -1,21 +1,37 @@
 import Redis from 'ioredis';
-import { env } from './env.config.js';
 import { logger } from '../utils/logger.js';
 
 let redisClient = null;
 
+const getRedisOptions = () => {
+  if (process.env.REDIS_URL) {
+    return process.env.REDIS_URL;
+  }
+
+  if (!process.env.REDIS_HOST || !process.env.REDIS_PORT) {
+    return null;
+  }
+
+  return {
+    host: process.env.REDIS_HOST,
+    port: Number(process.env.REDIS_PORT),
+    password: process.env.REDIS_PASSWORD || undefined,
+  };
+};
+
 /**
- * Initialize Redis client (stub for MVP)
- * Post-MVP: enable actual caching and rate limiting.
+ * Initialize Redis client.
  */
 export const initRedis = async () => {
-  if (!env.REDIS_URL) {
-    logger.info('Redis URL not set - skipping Redis initialization (MVP stub)');
+  const redisOptions = getRedisOptions();
+
+  if (!redisOptions) {
+    logger.info('Redis config not set - skipping Redis initialization');
     return;
   }
 
   try {
-    redisClient = new Redis(env.REDIS_URL);
+    redisClient = new Redis(redisOptions);
 
     redisClient.on('error', (err) => {
       logger.error({ err }, 'Redis client error');
@@ -34,7 +50,6 @@ export const initRedis = async () => {
     logger.info('Redis ping successful');
   } catch (error) {
     logger.error({ error }, 'Failed to initialize Redis client');
-    // Do not crash the app for MVP; Redis is optional
   }
 };
 
