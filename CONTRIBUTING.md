@@ -10,7 +10,7 @@ Welcome to **Ajeya_AI**! This guide helps you quickly contribute to our hackatho
 
 1. **Clone the repo**
 ```bash
-git clone git@github.com:our-org/ajeya_ai.git
+git clone https://github.com/Sumith-Kumar-Saini/AjeyaAI.git
 cd ajeya_ai
 ````
 
