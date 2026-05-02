@@ -8,35 +8,91 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as publicIndexRouteImport } from './routes/(public)/index'
+
+const nonPublicSignUpIndexLazyRouteImport = createFileRoute(
+  '/(non-public)/sign-up/',
+)()
+const nonPublicSignInIndexLazyRouteImport = createFileRoute(
+  '/(non-public)/sign-in/',
+)()
+const nonPublicDashboardIndexLazyRouteImport = createFileRoute(
+  '/(non-public)/dashboard/',
+)()
 
 const publicIndexRoute = publicIndexRouteImport.update({
   id: '/(public)/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const nonPublicSignUpIndexLazyRoute = nonPublicSignUpIndexLazyRouteImport
+  .update({
+    id: '/(non-public)/sign-up/',
+    path: '/sign-up/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+  .lazy(() =>
+    import('./routes/(non-public)/sign-up/index.lazy').then((d) => d.Route),
+  )
+const nonPublicSignInIndexLazyRoute = nonPublicSignInIndexLazyRouteImport
+  .update({
+    id: '/(non-public)/sign-in/',
+    path: '/sign-in/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+  .lazy(() =>
+    import('./routes/(non-public)/sign-in/index.lazy').then((d) => d.Route),
+  )
+const nonPublicDashboardIndexLazyRoute = nonPublicDashboardIndexLazyRouteImport
+  .update({
+    id: '/(non-public)/dashboard/',
+    path: '/dashboard/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+  .lazy(() =>
+    import('./routes/(non-public)/dashboard/index.lazy').then((d) => d.Route),
+  )
 
 export interface FileRoutesByFullPath {
   '/': typeof publicIndexRoute
+  '/dashboard/': typeof nonPublicDashboardIndexLazyRoute
+  '/sign-in/': typeof nonPublicSignInIndexLazyRoute
+  '/sign-up/': typeof nonPublicSignUpIndexLazyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof publicIndexRoute
+  '/dashboard': typeof nonPublicDashboardIndexLazyRoute
+  '/sign-in': typeof nonPublicSignInIndexLazyRoute
+  '/sign-up': typeof nonPublicSignUpIndexLazyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(public)/': typeof publicIndexRoute
+  '/(non-public)/dashboard/': typeof nonPublicDashboardIndexLazyRoute
+  '/(non-public)/sign-in/': typeof nonPublicSignInIndexLazyRoute
+  '/(non-public)/sign-up/': typeof nonPublicSignUpIndexLazyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/dashboard/' | '/sign-in/' | '/sign-up/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/(public)/'
+  to: '/' | '/dashboard' | '/sign-in' | '/sign-up'
+  id:
+    | '__root__'
+    | '/(public)/'
+    | '/(non-public)/dashboard/'
+    | '/(non-public)/sign-in/'
+    | '/(non-public)/sign-up/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   publicIndexRoute: typeof publicIndexRoute
+  nonPublicDashboardIndexLazyRoute: typeof nonPublicDashboardIndexLazyRoute
+  nonPublicSignInIndexLazyRoute: typeof nonPublicSignInIndexLazyRoute
+  nonPublicSignUpIndexLazyRoute: typeof nonPublicSignUpIndexLazyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +104,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof publicIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(non-public)/sign-up/': {
+      id: '/(non-public)/sign-up/'
+      path: '/sign-up'
+      fullPath: '/sign-up/'
+      preLoaderRoute: typeof nonPublicSignUpIndexLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(non-public)/sign-in/': {
+      id: '/(non-public)/sign-in/'
+      path: '/sign-in'
+      fullPath: '/sign-in/'
+      preLoaderRoute: typeof nonPublicSignInIndexLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(non-public)/dashboard/': {
+      id: '/(non-public)/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof nonPublicDashboardIndexLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   publicIndexRoute: publicIndexRoute,
+  nonPublicDashboardIndexLazyRoute: nonPublicDashboardIndexLazyRoute,
+  nonPublicSignInIndexLazyRoute: nonPublicSignInIndexLazyRoute,
+  nonPublicSignUpIndexLazyRoute: nonPublicSignUpIndexLazyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

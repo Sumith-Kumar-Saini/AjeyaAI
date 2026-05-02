@@ -1,4 +1,4 @@
-# 🧠 Ajeya_AI
+# 🧠 Ajeya AI
 
 > **Full-loop AI co-pilot for product decisions**  
 > React + TypeScript + Vite / Node.js + Express / MongoDB + Redis / Gemini AI
@@ -9,7 +9,7 @@
 
 ## Overview
 
-Ajeya_AI is a web-based platform where product managers and founders upload customer feedback and ask natural language questions like *"What should we build next?"*. Gemini AI analyzes project data and returns structured, evidence-backed feature recommendations. The system includes a **feedback loop**: PMs accept/reject AI suggestions, improving future outputs.
+Ajeya AI is a web-based platform where product managers and founders upload customer feedback and ask natural language questions like *"What should we build next?"*. Gemini AI analyzes project data and returns structured, evidence-backed feature recommendations. The system includes a **feedback loop**: PMs accept/reject AI suggestions, improving future outputs.
 
 This monorepo contains:
 

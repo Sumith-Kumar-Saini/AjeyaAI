@@ -1,14 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import Navbar from "@/components/Navbar";
+import Hero from "@/components/Hero";
+import { Feature13 } from "@/components/feature13";
 import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
+  BarChart3,
+  Brain,
+  CheckCircle2,
+  Database,
+  History,
+  Layers,
+  Sparkles,
+} from "lucide-react";
+import { Testimonial10 } from "@/components/testimonial10";
+import { Cta11 } from "@/components/cta11";
+import LogoFull from "@/assets/images/logo-full.png";
+import { Faq1 } from "@/components/faq1";
+import { Footer2 } from "@/components/footer2";
 
 export const Route = createFileRoute("/(public)/")({
   component: RouteComponent,
@@ -16,206 +23,216 @@ export const Route = createFileRoute("/(public)/")({
 
 const features = [
   {
-    title: "Upload Feedback",
-    description: "Paste or upload CSV / TXT files in seconds.",
+    icon: <Brain className="size-5" />,
+    title: "AI-Powered Product Decisions",
+    description:
+      "Turn raw customer feedback into clear product direction. Ask a question and get structured, data-backed feature recommendations instantly.",
+    image: {
+      src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/image-set/placeholder/images/1-16x9.jpg",
+      alt: "AI product decision engine",
+    },
+    href: "#",
   },
   {
-    title: "Ask AI Anything",
-    description: "Single-turn Q&A to prioritize features.",
+    icon: <Database className="size-5" />,
+    title: "Unified Feedback Hub",
+    description:
+      "Upload interviews, support tickets, or CSVs into one place. Ajeya AI analyzes everything together—no more scattered insights.",
+    image: {
+      src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/image-set/placeholder/images/2-16x9.jpg",
+      alt: "Centralized feedback data",
+    },
+    href: "#",
   },
   {
-    title: "Structured Insights",
-    description: "Feature ideas, UI/UX suggestions, engineering tasks.",
+    icon: <BarChart3 className="size-5" />,
+    title: "Confidence Scored Insights",
+    description:
+      "Every recommendation comes with a confidence score, so you know what’s backed by strong signals vs weak patterns.",
+    image: {
+      src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/image-set/placeholder/images/3-16x9.jpg",
+      alt: "Confidence scoring",
+    },
+    href: "#",
+  },
+  {
+    icon: <CheckCircle2 className="size-5" />,
+    title: "Built-in Feedback Loop",
+    description:
+      "Accept or reject AI suggestions and shape future outputs. The system adapts to your product decisions over time.",
+    image: {
+      src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/image-set/placeholder/images/4-16x9.jpg",
+      alt: "Feedback loop system",
+    },
+    href: "#",
+  },
+  {
+    icon: <Layers className="size-5" />,
+    title: "Structured Output, Ready to Use",
+    description:
+      "Get feature ideas, justification, UI suggestions, and engineering tasks—organized and ready for your next sprint.",
+    image: {
+      src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/image-set/placeholder/images/5-16x9.jpg",
+      alt: "Structured AI output",
+    },
+    href: "#",
+  },
+  {
+    icon: <History className="size-5" />,
+    title: "Decisions You Can Revisit",
+    description:
+      "Track every AI analysis and your responses. Build a living history of product decisions and learn what works.",
+    image: {
+      src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/image-set/placeholder/images/6-16x9.jpg",
+      alt: "Results history",
+    },
+    href: "#",
   },
 ];
 
-const steps = [
-  {
-    title: "1. Upload",
-    description: "Paste or upload your customer feedback.",
+const testimonial = {
+  quote:
+    "Ajeya AI completely changed how we prioritize features. Instead of debating opinions, we now rely on real signals from customer feedback, and the confidence scores make decision-making incredibly clear.",
+  author: {
+    name: "Arjun Mehta",
+    role: "Head of Product, SaaS Startup",
+    avatar: {
+      src: "https://i.pravatar.cc/150?img=12",
+      alt: "Arjun Mehta",
+    },
   },
-  {
-    title: "2. Ask AI",
-    description: "Type your question and let the AI analyze.",
-  },
-  {
-    title: "3. Decide",
-    description: "Accept, reject, or stay neutral on AI suggestions.",
-  },
-];
+};
 
-const testimonials = [
-  { name: "Maya, PM", text: "Ajeya_AI helped me plan our roadmap in minutes!" },
-  { name: "Arjun, CTO", text: "Saved our engineering team hours every week." },
-];
+const cta = {
+  heading: "Stop Guessing What to Build Next",
+  description:
+    "Turn real customer feedback into clear product decisions with AI-powered insights—so your team moves faster with confidence.",
+  image: {
+    src: LogoFull,
+    alt: "Logo",
+  },
+  buttons: {
+    primary: {
+      text: "Get Started Free",
+      url: "/sign-in",
+    },
+  },
+  icon: <Sparkles className="size-4" strokeWidth={1.5} />,
+};
 
-const faqs = [
-  {
-    q: "What file types are supported?",
-    a: ".txt and .csv files, max 1MB each.",
+const faq = {
+  heading: "Frequently asked questions",
+  items: [
+    {
+      id: "01",
+      question: "How does Ajeya AI generate product recommendations?",
+      answer:
+        "It analyzes your uploaded customer feedback and identifies patterns to suggest features, complete with reasoning and structured outputs.",
+    },
+    {
+      id: "02",
+      question: "What kind of data can I upload?",
+      answer:
+        "You can upload interviews, support tickets, survey responses, or CSV files—anything that captures user feedback.",
+    },
+    {
+      id: "03",
+      question: "How accurate are the AI suggestions?",
+      answer:
+        "Each recommendation includes a confidence score so you can quickly judge how strong the underlying signals are.",
+    },
+    {
+      id: "04",
+      question: "Can I control or refine the AI output?",
+      answer:
+        "Yes, you can accept or reject suggestions, and the system learns from your decisions to improve future results.",
+    },
+    {
+      id: "05",
+      question: "Who is this product best suited for?",
+      answer:
+        "Ajeya AI is built for product managers, founders, and teams who want to make faster, data-backed product decisions.",
+    },
+    {
+      id: "06",
+      question: "How do I get started?",
+      answer:
+        "Simply create a project, upload your feedback data, and ask your first product question to get actionable insights.",
+    },
+  ],
+};
+
+const footerProps = {
+  logo: {
+    title: "Ajeya AI",
+    alt: "Ajeya AI logo",
+    url: "/",
+    src: LogoFull
   },
-  {
-    q: "Is AI multi-turn supported?",
-    a: "Post-MVP only; hackathon MVP is single-turn.",
-  },
-  {
-    q: "Can I track feedback?",
-    a: "Yes! Accept/Reject/Neutral buttons persist in history.",
-  },
-];
+  description: "AI co-pilot for product decisions—analyze user feedback, uncover insights, and build smarter roadmaps with confidence.",
+  sections: [
+    {
+      title: "Product",
+      links: [
+        { name: "Features", href: "/#features" },
+        { name: "Pricing", href: "/#pricing" },
+        { name: "AI Analysis", href: "/#ai-analysis" },
+        { name: "Feedback Loop", href: "/#feedback-loop" },
+        { name: "Roadmap Insights", href: "/#roadmap-insights" }
+      ]
+    },
+    {
+      title: "Platform",
+      links: [
+        { name: "Projects", href: "/projects" },
+        { name: "Data Upload", href: "/data-upload" },
+        { name: "AI Results", href: "/results" },
+        { name: "History", href: "/history" },
+        { name: "Admin Panel", href: "/admin" }
+      ]
+    },
+    {
+      title: "Resources",
+      links: [
+        { name: "Documentation", href: "/#docs" },
+        { name: "API Reference", href: "/#api" },
+        { name: "Guides", href: "/#guides" },
+        { name: "Blog", href: "/#blog" }
+      ]
+    },
+    {
+      title: "Company",
+      links: [
+        { name: "About", href: "/#about" },
+        { name: "Careers", href: "/#careers" },
+        { name: "Contact", href: "/#contact" },
+        { name: "Privacy Policy", href: "/#privacy" }
+      ]
+    }
+  ],
+  legal: [
+    { name: "Terms of Service", href: "/#terms" },
+    { name: "Privacy Policy", href: "/#privacy" }
+  ],
+  copyright: "© 2026 Ajeya AI. All rights reserved."
+};
 
 function RouteComponent() {
   return (
-    <div className="flex flex-col gap-24 px-6 md:px-16 py-12">
-      {/* Hero Section */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="text-center max-w-3xl mx-auto"
-      >
-        <h1 className="text-5xl md:text-6xl font-bold">
-          Ajeya_AI — Your AI Product Co-Pilot
-        </h1>
-        <p className="mt-6 text-lg text-gray-600">
-          Upload customer feedback, ask AI, get actionable feature ideas and
-          roadmap suggestions.
-        </p>
-        <div className="mt-8 flex justify-center gap-4">
-          <Button size="lg">Start for Free</Button>
-          <Button variant="outline" size="lg">
-            Watch Demo
-          </Button>
-        </div>
-      </motion.section>
-
-      {/* Features Section */}
-      <motion.section
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6"
-      >
-        {features.map((f, i) => (
-          <motion.div
-            key={i}
-            variants={{
-              hidden: { opacity: 0, y: 20 },
-              visible: { opacity: 1, y: 0, transition: { delay: i * 0.2 } },
-            }}
-          >
-            <Card className="hover:shadow-lg transition-shadow duration-300">
-              <CardHeader>{f.title}</CardHeader>
-              <CardContent>{f.description}</CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </motion.section>
-
-      {/* How It Works / Steps */}
-      <section className="max-w-4xl mx-auto flex flex-col md:flex-row gap-8">
-        {steps.map((s, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, x: i % 2 === 0 ? -50 : 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.2 }}
-            className="flex-1"
-          >
-            <Card className="p-6 text-center">
-              <Badge className="mb-2">{s.title}</Badge>
-              <p>{s.description}</p>
-            </Card>
-          </motion.div>
-        ))}
-      </section>
-
-      {/* Demo / Screenshot Section */}
-      <motion.section
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        className="text-center"
-      >
-        <h2 className="text-3xl font-bold mb-6">See Ajeya_AI in Action</h2>
-        <motion.div
-          whileHover={{ scale: 1.05, rotate: 1 }}
-          className="max-w-4xl mx-auto"
-        >
-          <Card>
-            <img
-              src="/demo-placeholder.png"
-              alt="AI Result Demo"
-              className="rounded-md shadow-md"
-            />
-          </Card>
-        </motion.div>
-      </motion.section>
-
-      {/* Testimonials */}
-      <section className="max-w-4xl mx-auto text-center">
-        <h2 className="text-3xl font-bold mb-8">What Users Say</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {testimonials.map((t, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.2 }}
-            >
-              <Card className="p-6">
-                <p className="mb-2 text-gray-700">"{t.text}"</p>
-                <span className="font-semibold">{t.name}</span>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Pricing / CTA */}
-      <motion.section
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        className="text-center"
-      >
-        <h2 className="text-3xl font-bold mb-6">Get Started Today</h2>
-        <div className="flex flex-col md:flex-row justify-center gap-6">
-          <Card className="p-8 hover:shadow-lg transition-shadow duration-300">
-            <h3 className="text-xl font-semibold mb-2">Free Plan</h3>
-            <p className="text-gray-600 mb-4">
-              Up to 5 projects, 10 AI queries/day
-            </p>
-            <Button>Sign Up Free</Button>
-          </Card>
-          <Card className="p-8 hover:shadow-lg transition-shadow duration-300">
-            <h3 className="text-xl font-semibold mb-2">Pro Plan</h3>
-            <p className="text-gray-600 mb-4">
-              Unlimited projects, AI queries, history & priority support
-            </p>
-            <Button variant="outline">Contact Sales</Button>
-          </Card>
-        </div>
-      </motion.section>
-
-      {/* FAQ Section */}
-      <section className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-6">
-          Frequently Asked Questions
-        </h2>
-        <Accordion type="single" collapsible>
-          {faqs.map((f, i) => (
-            <AccordionItem key={i} value={`item-${i}`}>
-              <AccordionTrigger>{f.q}</AccordionTrigger>
-              <AccordionContent>{f.a}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </section>
-
-      {/* Footer */}
-      <footer className="text-center text-gray-500 py-12">
-        © {new Date().getFullYear()} Ajeya_AI. All rights reserved.
-      </footer>
-    </div>
+    <>
+      <Navbar />
+      <div className="flex flex-col gap-24 px-6 md:px-16 py-12">
+        {/* Hero Section */}
+        <Hero />
+        <Feature13
+          features={features}
+          heading="Build What Matters. Backed by Real Signals."
+        />
+        <Testimonial10 {...testimonial} />
+        <Cta11 {...cta} />
+        <Faq1 {...faq} />
+        <Footer2 {...footerProps} />
+      </div>
+    </>
   );
 }
