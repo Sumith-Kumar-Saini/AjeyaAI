@@ -13,7 +13,7 @@ const toPublicUser = (user) => ({
   id: user._id.toString(),
   name: user.name,
   email: user.email,
-  role: user.role,
+  role: user.role || 'User',
   createdAt: user.createdAt,
 });
 
@@ -60,6 +60,11 @@ const createTokenPair = async (user) => {
   return { accessToken, refreshToken };
 };
 
+const hashRefreshToken = (refreshToken) => crypto
+  .createHash('sha256')
+  .update(refreshToken)
+  .digest('hex');
+
 export const signupUser = async ({ name, email, password }) => {
   const existingUser = await User.exists({ email });
 
@@ -96,6 +101,18 @@ export const loginUser = async ({ email, password }) => {
     throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
   }
 
+  if (user.authProvider === 'google' && !user.passwordHash) {
+    throw new AppError(
+      'This account uses Google login. Please continue with Google.',
+      401,
+      'GOOGLE_AUTH_REQUIRED',
+    );
+  }
+
+  if (!user.passwordHash) {
+    throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+  }
+
   const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
   if (!isPasswordValid) {
@@ -108,12 +125,88 @@ export const loginUser = async ({ email, password }) => {
   };
 };
 
-export const getCurrentUser = async (userId) => {
+export const googleAuthUser = async ({ googleId, email, name, avatarUrl, emailVerified }) => {
+  if (!googleId || !email) {
+    throw new AppError('Google profile is missing required data', 400, 'GOOGLE_PROFILE_INVALID');
+  }
+
+  const normalizedEmail = email.toLowerCase();
+  let user = await User.findOne({ $or: [{ googleId }, { email: normalizedEmail }] });
+
+  if (user) {
+    const shouldUpdateGoogleFields = !user.googleId
+      || user.authProvider !== 'google'
+      || user.avatarUrl !== avatarUrl
+      || user.emailVerified !== Boolean(emailVerified);
+
+    if (shouldUpdateGoogleFields) {
+      user.googleId = googleId;
+      user.authProvider = 'google';
+      user.avatarUrl = avatarUrl || '';
+      user.emailVerified = Boolean(emailVerified);
+      await user.save();
+    }
+  } else {
+    user = await User.create({
+      name: name || normalizedEmail.split('@')[0],
+      email: normalizedEmail,
+      authProvider: 'google',
+      googleId,
+      avatarUrl: avatarUrl || '',
+      emailVerified: Boolean(emailVerified),
+    });
+  }
+
+  return {
+    user: toPublicUser(user),
+    tokens: await createTokenPair(user),
+  };
+};
+
+
+export const refreshUserTokens = async (refreshToken) => {
+  if (!refreshToken) {
+    throw new AppError('Unauthorized', 401, 'REFRESH_TOKEN_MISSING');
+  }
+
+  const hashedRefreshToken = hashRefreshToken(refreshToken);
+  const redisClient = getRedisClient();
+  const userId = await redisClient.get(`refresh:${hashedRefreshToken}`);
+
+  if (!userId) {
+    throw new AppError('Invalid refresh token', 401, 'INVALID_REFRESH_TOKEN');
+  }
+
+  await redisClient.del(`refresh:${hashedRefreshToken}`);
+
   const user = await User.findById(userId);
 
   if (!user) {
     throw new AppError('User not found', 404, 'USER_NOT_FOUND');
   }
 
-  return toPublicUser(user);
+  return {
+    user: toPublicUser(user),
+    tokens: await createTokenPair(user),
+  };
+};
+
+export const logoutUser = async (refreshToken, accessToken) => {
+  if (!refreshToken) {
+    throw new AppError('Refresh token required', 400, 'REFRESH_TOKEN_MISSING');
+  }
+
+  const hashedRefreshToken = hashRefreshToken(refreshToken);
+
+  await getRedisClient().del(`refresh:${hashedRefreshToken}`);
+
+  if (accessToken) {
+    // Blacklist the access token for 15 minutes
+    await getRedisClient().set(
+      `blacklist:access:${accessToken}`,
+      'blacklisted',
+      'EX',
+      15 * 60,
+    );
+  }
 };
