@@ -1,12 +1,11 @@
 import pino from 'pino';
-import { env } from '../config/env.config.js'; // adjust path if needed
 
 let logger;
 
 // Use pretty logs only in development
-if (env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'development') {
   logger = pino({
-    level: env.LOG_LEVEL || 'info',
+    level: process.env.LOG_LEVEL || 'info',
     transport: {
       target: 'pino-pretty',
       options: {
@@ -19,7 +18,7 @@ if (env.NODE_ENV === 'development') {
 } else {
   // Production and test: raw JSON logs
   logger = pino({
-    level: env.LOG_LEVEL || 'info',
+    level: process.env.LOG_LEVEL || 'info',
     timestamp: () => `,"time":"${new Date().toISOString()}"`,
     formatters: {
       level(label) {

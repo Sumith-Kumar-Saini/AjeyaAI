@@ -1,9 +1,12 @@
+import "dotenv/config"
 import http from 'http';
-import { app } from './app.js';
-import { connectDB } from './config/db.config.js';
-import { initRedis } from './config/redis.config.js';
-import { env } from './config/env.config.js';
-import { logger } from './utils/logger.js';
+import { app } from './src/app.js';
+import { connectDB } from './src/config/db.config.js';
+import { initRedis } from './src/config/redis.config.js';
+import { logger } from './src/utils/logger.js';
+
+
+// for the dotenv
 
 const server = http.createServer(app);
 
@@ -17,9 +20,9 @@ const startServer = async () => {
     await initRedis();
     logger.info('Redis client initialized (stub)');
 
-    const port = env.PORT;
+    const port = process.env.PORT;
     server.listen(port, () => {
-      logger.info(`Server running in ${env.NODE_ENV} mode on port ${port}`);
+      logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${port}`);
     });
   } catch (error) {
     logger.error({ error }, 'Failed to start server');
