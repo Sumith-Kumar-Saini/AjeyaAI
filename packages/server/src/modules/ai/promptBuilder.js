@@ -1,12 +1,12 @@
 export const buildPrompt = (question, docsText) => `
 You are a Senior AI Product Manager.
 
-Analyze the customer feedback below.
+Analyze the user feedback and answer this product question.
 
 QUESTION:
 ${question}
 
-CUSTOMER DATA:
+CUSTOMER FEEDBACK:
 ${docsText}
 
 Return ONLY valid JSON.
@@ -17,16 +17,8 @@ Return ONLY valid JSON.
       "title": "",
       "description": "",
       "confidenceScore": 0.85,
-      "conflictNote": ""
-    }
-  ],
-  "justification": "",
-  "uiSuggestions": ["", ""],
-  "engineeringTasks": [
-    {
-      "task": "",
-      "estimate": "",
-      "priority": "high"
+      "conflictNote": "",
+      "justification": ""
     }
   ]
 }

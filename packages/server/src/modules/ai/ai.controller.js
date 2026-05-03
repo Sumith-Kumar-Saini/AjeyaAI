@@ -1,12 +1,20 @@
 import { analyzeProject } from "./ai.service.js";
 
-export const analyzeQuery = async (req, res) => {
+export const analyzeQuery = async (
+  req,
+  res
+) => {
   try {
-    const result = await analyzeProject({
-      projectId: req.body.projectId,
-      question: req.body.question,
-      userId: req.user?._id || "guest",
-    });
+    const result =
+      await analyzeProject({
+        projectId:
+          req.body.projectId,
+        question:
+          req.body.question,
+        userId:
+          req.user?._id ||
+          "guest",
+      });
 
     res.json({
       success: true,
@@ -19,4 +27,3 @@ export const analyzeQuery = async (req, res) => {
     });
   }
 };
-    

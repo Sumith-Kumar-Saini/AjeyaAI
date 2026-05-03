@@ -3,25 +3,35 @@ import AIResult from "./ai.model.js";
 import { buildPrompt } from "./promptBuilder.js";
 import { validateAIJSON } from "./jsonValidator.js";
 import { extractJSON } from "./jsonFallback.js";
+import Document from "../document/document.model.js";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-export const analyzeProject = async ({ projectId, question, userId }) => {
-  const docsText = `
-Users say bulk upload is missing.
-Many users want dashboard analytics.
-Some users complain onboarding is confusing.
-Need faster CSV import.
-`;
-
-  const prompt = buildPrompt(question, docsText);
-
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
+export const analyzeProject = async ({
+  projectId,
+  question,
+  userId,
+}) => {
+  const docs = await Document.find({
+    projectId,
   });
+
+  const docsText = docs
+    .map((doc) => doc.content)
+    .join("\n\n");
+
+  const prompt = buildPrompt(
+    question,
+    docsText
+  );
+
+  const response =
+    await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
 
   const rawText = response.text;
 
@@ -36,22 +46,30 @@ Need faster CSV import.
   }
 
   if (!validateAIJSON(parsed)) {
-    throw new Error("Invalid AI JSON response");
+    throw new Error(
+      "Invalid AI JSON response"
+    );
   }
 
-  const saved = await AIResult.create({
-    projectId,
-    userId,
-    question,
+  const featureIdeas =
+    parsed.featureIdeas.map(
+      (item) => ({
+        ...item,
+        feedback: "neutral",
+        engineeringTasks: [],
+      })
+    );
 
-    featureIdeas: parsed.featureIdeas,
-    justification: parsed.justification,
-    uiSuggestions: parsed.uiSuggestions,
-    engineeringTasks: parsed.engineeringTasks,
-
-    rawResponse: rawText,
-    parsedWithFallback: fallbackUsed,
-  });
+  const saved =
+    await AIResult.create({
+      projectId,
+      userId,
+      question,
+      featureIdeas,
+      rawResponse: rawText,
+      parsedWithFallback:
+        fallbackUsed,
+    });
 
   return saved;
 };

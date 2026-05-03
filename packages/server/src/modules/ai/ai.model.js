@@ -1,15 +1,5 @@
 import mongoose from "mongoose";
 
-const featureSchema = new mongoose.Schema(
-  {
-    title: String,
-    description: String,
-    confidenceScore: Number,
-    conflictNote: String,
-  },
-  { _id: false }
-);
-
 const taskSchema = new mongoose.Schema(
   {
     task: String,
@@ -19,6 +9,22 @@ const taskSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const featureSchema = new mongoose.Schema({
+  title: String,
+  description: String,
+  confidenceScore: Number,
+  conflictNote: String,
+  justification: String,
+
+  feedback: {
+    type: String,
+    enum: ["accepted", "rejected", "neutral"],
+    default: "neutral",
+  },
+
+  engineeringTasks: [taskSchema],
+});
+
 const resultSchema = new mongoose.Schema(
   {
     projectId: String,
@@ -26,12 +32,12 @@ const resultSchema = new mongoose.Schema(
     question: String,
 
     featureIdeas: [featureSchema],
-    justification: String,
-    uiSuggestions: [String],
-    engineeringTasks: [taskSchema],
 
     rawResponse: String,
-    parsedWithFallback: { type: Boolean, default: false },
+    parsedWithFallback: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
