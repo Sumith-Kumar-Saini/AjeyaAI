@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import {
   Card,
@@ -18,65 +18,101 @@ import {
 } from "@/components/ui/table";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { getMe } from "@/lib/api-endpoints";
+import { useAuthStore } from "@/stores/authStore";
+import DashboardSkeleton from "@/components/dashboard-skeleton";
+import { useProjectsStore } from "@/stores/projectStore";
 
 export const Route = createFileRoute("/(non-public)/dashboard/(overview)/")({
+  loader: async () => {
+    const store = useAuthStore.getState();
+
+    try {
+      // If already have user, skip API call
+      if (store.user) return null;
+
+      const user = await getMe();
+      store.setUser(user);
+
+      return null;
+    } catch (error) {
+      store.clearAuth();
+
+      throw redirect({
+        to: "/sign-in",
+      });
+    }
+  },
+
+  pendingComponent: () => <DashboardSkeleton />, // loading screen
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const projects = useProjectsStore((s) => s.projects);
+
   return (
     <>
       <SiteHeader heading="Overview" />
-      {/* <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 sm:grid-cols-2 xl:grid-cols-4 pt-20"> */}
+
       <div className="flex flex-col justify-center gap-4 px-4 lg:px-6 pt-20">
+        {/* STATS */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
                 Total Projects
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold">
+                {projects.length}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +20.1% from last month
+                Your total projects
               </p>
             </CardContent>
           </Card>
+
+          {/* Keep placeholders until backend exists */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
                 Total Documents
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">50</div>
+              <div className="text-2xl font-bold">--</div>
               <p className="text-xs text-muted-foreground">
-                +180.1% from last month
+                Coming soon
               </p>
             </CardContent>
           </Card>
+
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
                 Processed Documents
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">34</div>
+              <div className="text-2xl font-bold">--</div>
               <p className="text-xs text-muted-foreground">
-                +19% from last month
+                Coming soon
               </p>
             </CardContent>
           </Card>
         </div>
+
+        {/* PROJECTS TABLE */}
         <Card className="col-span-1 lg:col-span-3">
           <CardHeader>
             <CardTitle>Recent Projects</CardTitle>
             <CardDescription>
-              You Create 265 Projects this month.
+              Your latest created projects
             </CardDescription>
           </CardHeader>
+
           <CardContent>
             <Table>
               <TableCaption>
@@ -84,84 +120,51 @@ function RouteComponent() {
                   View ALL Projects
                 </Link>
               </TableCaption>
+
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-25">Recent Projects</TableHead>
-                  <TableHead>Total Features</TableHead>
-                  <TableHead>Accepted</TableHead>
-                  <TableHead>Rejected</TableHead>
-                  <TableHead>Neutral</TableHead>
+                  <TableHead>Project Name</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead>Updated At</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">INV001</TableCell>
-                  <TableCell>Paid</TableCell>
-                  <TableCell>Credit Card</TableCell>
-                  <TableCell>$250.00</TableCell>
-                  <TableCell>$250.00</TableCell>
-                  <TableCell className="text-right">
-                    <Link
-                      to="/dashboard/$projectId"
-                      params={{ projectId: "asdf" }}
-                    >
-                      <Button className="rounded-sm cursor-pointer">
-                        view Project
-                      </Button>
-                    </Link>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">INV001</TableCell>
-                  <TableCell>Paid</TableCell>
-                  <TableCell>Credit Card</TableCell>
-                  <TableCell>$250.00</TableCell>
-                  <TableCell>$250.00</TableCell>
-                  <TableCell className="text-right">
-                    <Link
-                      to="/dashboard/$projectId"
-                      params={{ projectId: "asdf" }}
-                    >
-                      <Button className="rounded-sm cursor-pointer">
-                        view Project
-                      </Button>
-                    </Link>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">INV001</TableCell>
-                  <TableCell>Paid</TableCell>
-                  <TableCell>Credit Card</TableCell>
-                  <TableCell>$250.00</TableCell>
-                  <TableCell>$250.00</TableCell>
-                  <TableCell className="text-right">
-                    <Link
-                      to="/dashboard/$projectId"
-                      params={{ projectId: "asdf" }}
-                    >
-                      <Button className="rounded-sm cursor-pointer">
-                        view Project
-                      </Button>
-                    </Link>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">INV001</TableCell>
-                  <TableCell>Paid</TableCell>
-                  <TableCell>Credit Card</TableCell>
-                  <TableCell>$250.00</TableCell>
-                  <TableCell>$250.00</TableCell>
-                  <TableCell className="text-right">
-                    <Link
-                      to="/dashboard/$projectId"
-                      params={{ projectId: "asdf" }}
-                    >
-                      <Button className="rounded-sm cursor-pointer">
-                        view Project
-                      </Button>
-                    </Link>
-                  </TableCell>
-                </TableRow>
+                {projects.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center">
+                      No projects found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  projects.slice(0, 5).map((project) => (
+                    <TableRow key={project.id}>
+                      <TableCell className="font-medium">
+                        {project.name}
+                      </TableCell>
+
+                      <TableCell>
+                        {new Date(project.createdAt).toLocaleDateString()}
+                      </TableCell>
+
+                      <TableCell>
+                        {new Date(project.updatedAt).toLocaleDateString()}
+                      </TableCell>
+
+                      <TableCell className="text-right">
+                        <Link
+                          to="/dashboard/$projectId"
+                          params={{ projectId: project.id }}
+                        >
+                          <Button className="rounded-sm cursor-pointer">
+                            View
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>

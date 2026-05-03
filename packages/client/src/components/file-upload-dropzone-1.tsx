@@ -16,9 +16,11 @@ import {
   FileUploadTrigger,
 } from "@/components/ui/file-upload";
 
-export const title = "Basic Dropzone";
+type Props = {
+  onFileSelect?: (file: File | null) => void;
+};
 
-const FileUploadDropzone1 = () => {
+const FileUploadDropzone1: React.FC<Props> = ({ onFileSelect }) => {
   const [files, setFiles] = React.useState<File[]>([]);
 
   const onFileReject = React.useCallback((file: File, message: string) => {
@@ -27,13 +29,22 @@ const FileUploadDropzone1 = () => {
     });
   }, []);
 
+  const handleFileChange = (newFiles: File[]) => {
+    setFiles(newFiles);
+
+    // send first file (since maxFiles = 1)
+    if (onFileSelect) {
+      onFileSelect(newFiles[0] || null);
+    }
+  };
+
   return (
     <FileUpload
       maxFiles={1}
       maxSize={1 * 1024 * 1024}
       className="w-full sm:max-w-md"
       value={files}
-      onValueChange={setFiles}
+      onValueChange={handleFileChange}
       onFileReject={onFileReject}
       multiple
     >
@@ -44,15 +55,17 @@ const FileUploadDropzone1 = () => {
           </div>
           <p className="text-sm font-medium">Drag & drop files here</p>
           <p className="text-xs text-muted-foreground">
-            Or click to browse (max 1 files, up to 1MB each)
+            Or click to browse (max 1 file, up to 1MB)
           </p>
         </div>
+
         <FileUploadTrigger asChild>
           <Button variant="outline" size="sm" className="mt-2 w-fit">
             Browse files
           </Button>
         </FileUploadTrigger>
       </FileUploadDropzone>
+
       <FileUploadList>
         {files.map((file, index) => (
           <FileUploadItem key={index} value={file}>

@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,27 +15,67 @@ interface Props {
   title: string;
   description: string;
   content: string;
+  feedback: "neutral" | "accepted" | "rejected";
   onAction: (value: "accept" | "reject") => void;
 }
 
-const CardStandard1 = ({ title, description, content, onAction }: Props) => {
-  const reject = () => onAction("reject");
-  const accept = () => onAction("accept");
+const CardStandard1 = ({
+  title,
+  description,
+  content,
+  feedback,
+  onAction,
+}: Props) => {
+  const isAccepted = feedback === "accepted";
+  const isRejected = feedback === "rejected";
+
+  const handleReject = () => {
+    console.log(isRejected)
+    if (isRejected) return; // extra safety
+    onAction("reject");
+  };
+
+  const handleAccept = () => {
+    if (isAccepted) return; // extra safety
+    onAction("accept");
+  };
+
   return (
-    <Card className="">
-    {/* <Card className="w-87.5"> */}
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card>
+      <CardHeader className="flex justify-between items-start">
+        <div>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </div>
+
+        {feedback !== "neutral" && (
+          <Badge variant={isAccepted ? "default" : "destructive"}>
+            {feedback}
+          </Badge>
+        )}
       </CardHeader>
+
       <CardContent>
         <p>{content}</p>
       </CardContent>
+
       <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={reject}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleReject}
+          disabled={isRejected}
+        >
           Reject
         </Button>
-        <Button onClick={accept}>Accept</Button>
+
+        <Button
+          type="button"
+          onClick={handleAccept}
+          disabled={isAccepted}
+        >
+          Accept
+        </Button>
       </CardFooter>
     </Card>
   );

@@ -10,7 +10,8 @@ const ENDPOINTS = {
   LOGOUT: "/auth/logout",
   ME: "/auth/me",
 
-  ANALYZE_FEEDBACK: "/feedback/analyze",
+  ANALYZE_FEEDBACK: "/ai/analyze",
+  Document_Upload: "/documents/upload",
   RESULTS: "/results",
   FEATURES: "/features",
   TASKS: "/tasks",
@@ -57,10 +58,30 @@ export interface EngineeringTask {
 }
 
 export interface Result {
-  id: string;
+  _id: string;
   projectId: string;
   features: Feature[];
   createdAt: string;
+}
+
+/* =========================
+   DOCUMENT TYPES
+========================= */
+export interface Document {
+  _id: string;
+  projectId: string;
+  userId?: string;
+  filename: string;
+  content: string;
+  type: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UploadDocumentPayload {
+  projectId: string;
+  file?: File;     // optional (for file upload)
+  text?: string;   // optional (for pasted text)
 }
 
 /* =========================
@@ -80,6 +101,9 @@ export async function login(email: string, password: string): Promise<void> {
   const data = await request<AuthResponse>(
     api.post(ENDPOINTS.LOGIN, { email, password }),
   );
+
+  // TODO: remove this temp code
+  console.log(data);
 
   useAuthStore.getState().setAccessToken(data.accessToken);
 }
@@ -141,7 +165,8 @@ export async function updateFeedback(
   feedback: FeedbackType,
 ): Promise<void> {
   await request<void>(
-    api.patch(`${ENDPOINTS.RESULTS}/${resultId}/features/${featureId}`, {
+    api.patch(`${ENDPOINTS.RESULTS}/${resultId}/feedback`, {
+      featureId,
       feedback,
     }),
   );
@@ -171,4 +196,31 @@ export async function initializeAuth(): Promise<void> {
   } finally {
     store.setInitialized(true);
   }
+}
+
+/* =========================
+   DOCUMENT APIs
+========================= */
+export async function uploadDocument(
+  payload: UploadDocumentPayload,
+): Promise<Document> {
+  const formData = new FormData();
+
+  formData.append("projectId", payload.projectId);
+
+  if (payload.file) {
+    formData.append("file", payload.file); // MUST match multer field name
+  }
+
+  if (payload.text) {
+    formData.append("text", payload.text);
+  }
+
+  return request<Document>(
+    api.post(ENDPOINTS.Document_Upload, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
+  );
 }

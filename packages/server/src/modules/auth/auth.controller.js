@@ -128,6 +128,7 @@ export const signup = async (req, res, next) => {
             },
         });
     } catch (error) {
+        return next(error)
         return res.status(500).json({
             success: false,
             error: 'Internal server error',
@@ -163,9 +164,11 @@ export const login = async (req, res, next) => {
             },
         });
     } catch (error) {
+        return next(error)
         return res.status(500).json({
+            error,
             success: false,
-            error: 'Internal server error',
+            // error: 'Internal server error',
         });
     }
 };

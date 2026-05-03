@@ -1,19 +1,19 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Link } from "@tanstack/react-router"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Link } from "@tanstack/react-router";
 
 export function SignupForm({
   className,
   ...props
-}: React.ComponentProps<"form">) {
+}: React.ComponentProps<"form"> & { disabled?: boolean }) {
   return (
     <form className={cn("flex flex-col gap-6", className)} {...props}>
       <FieldGroup>
@@ -28,6 +28,7 @@ export function SignupForm({
           <Input
             id="name"
             type="text"
+            name="name"
             placeholder="John Doe"
             required
             className="bg-background"
@@ -38,6 +39,7 @@ export function SignupForm({
           <Input
             id="email"
             type="email"
+            name="email"
             placeholder="m@example.com"
             required
             className="bg-background"
@@ -52,6 +54,7 @@ export function SignupForm({
           <Input
             id="password"
             type="password"
+            name="password"
             required
             className="bg-background"
           />
@@ -70,7 +73,13 @@ export function SignupForm({
           <FieldDescription>Please confirm your password.</FieldDescription>
         </Field>
         <Field>
-          <Button className="cursor-pointer" type="submit">Create Account</Button>
+          <Button
+            className="cursor-pointer"
+            type="submit"
+            disabled={props.disabled}
+          >
+            {props.disabled ? "Creating account..." : "Create Account"}
+          </Button>
         </Field>
         <FieldSeparator>Or continue with</FieldSeparator>
         <Field>
@@ -83,5 +92,5 @@ export function SignupForm({
         </Field>
       </FieldGroup>
     </form>
-  )
+  );
 }

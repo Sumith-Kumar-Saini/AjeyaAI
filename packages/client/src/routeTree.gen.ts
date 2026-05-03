@@ -12,13 +12,11 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as publicIndexRouteImport } from './routes/(public)/index'
+import { Route as nonPublicDashboardRouteRouteImport } from './routes/(non-public)/dashboard/route'
 import { Route as nonPublicDashboardoverviewIndexRouteImport } from './routes/(non-public)/dashboard/(overview)/index'
 import { Route as nonPublicDashboardProjectIdIndexRouteImport } from './routes/(non-public)/dashboard/$projectId/index'
 
 const nonPublicRouteLazyRouteImport = createFileRoute('/(non-public)')()
-const nonPublicDashboardRouteLazyRouteImport = createFileRoute(
-  '/(non-public)/dashboard',
-)()
 const nonPublicSignUpIndexLazyRouteImport = createFileRoute(
   '/(non-public)/sign-up/',
 )()
@@ -43,15 +41,11 @@ const publicIndexRoute = publicIndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const nonPublicDashboardRouteLazyRoute = nonPublicDashboardRouteLazyRouteImport
-  .update({
-    id: '/dashboard',
-    path: '/dashboard',
-    getParentRoute: () => nonPublicRouteLazyRoute,
-  } as any)
-  .lazy(() =>
-    import('./routes/(non-public)/dashboard/route.lazy').then((d) => d.Route),
-  )
+const nonPublicDashboardRouteRoute = nonPublicDashboardRouteRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => nonPublicRouteLazyRoute,
+} as any)
 const nonPublicSignUpIndexLazyRoute = nonPublicSignUpIndexLazyRouteImport
   .update({
     id: '/sign-up/',
@@ -75,7 +69,7 @@ const nonPublicDashboardProjectsIndexLazyRoute =
     .update({
       id: '/projects/',
       path: '/projects/',
-      getParentRoute: () => nonPublicDashboardRouteLazyRoute,
+      getParentRoute: () => nonPublicDashboardRouteRoute,
     } as any)
     .lazy(() =>
       import('./routes/(non-public)/dashboard/projects/index.lazy').then(
@@ -87,7 +81,7 @@ const nonPublicDashboardDocumentsIndexLazyRoute =
     .update({
       id: '/documents/',
       path: '/documents/',
-      getParentRoute: () => nonPublicDashboardRouteLazyRoute,
+      getParentRoute: () => nonPublicDashboardRouteRoute,
     } as any)
     .lazy(() =>
       import('./routes/(non-public)/dashboard/documents/index.lazy').then(
@@ -98,17 +92,17 @@ const nonPublicDashboardoverviewIndexRoute =
   nonPublicDashboardoverviewIndexRouteImport.update({
     id: '/(overview)/',
     path: '/',
-    getParentRoute: () => nonPublicDashboardRouteLazyRoute,
+    getParentRoute: () => nonPublicDashboardRouteRoute,
   } as any)
 const nonPublicDashboardProjectIdIndexRoute =
   nonPublicDashboardProjectIdIndexRouteImport.update({
     id: '/$projectId/',
     path: '/$projectId/',
-    getParentRoute: () => nonPublicDashboardRouteLazyRoute,
+    getParentRoute: () => nonPublicDashboardRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/dashboard': typeof nonPublicDashboardRouteLazyRouteWithChildren
+  '/dashboard': typeof nonPublicDashboardRouteRouteWithChildren
   '/': typeof publicIndexRoute
   '/sign-in/': typeof nonPublicSignInIndexLazyRoute
   '/sign-up/': typeof nonPublicSignUpIndexLazyRoute
@@ -129,7 +123,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(non-public)': typeof nonPublicRouteLazyRouteWithChildren
-  '/(non-public)/dashboard': typeof nonPublicDashboardRouteLazyRouteWithChildren
+  '/(non-public)/dashboard': typeof nonPublicDashboardRouteRouteWithChildren
   '/(public)/': typeof publicIndexRoute
   '/(non-public)/sign-in/': typeof nonPublicSignInIndexLazyRoute
   '/(non-public)/sign-up/': typeof nonPublicSignUpIndexLazyRoute
@@ -196,7 +190,7 @@ declare module '@tanstack/react-router' {
       id: '/(non-public)/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
-      preLoaderRoute: typeof nonPublicDashboardRouteLazyRouteImport
+      preLoaderRoute: typeof nonPublicDashboardRouteRouteImport
       parentRoute: typeof nonPublicRouteLazyRoute
     }
     '/(non-public)/sign-up/': {
@@ -218,40 +212,40 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/dashboard/projects/'
       preLoaderRoute: typeof nonPublicDashboardProjectsIndexLazyRouteImport
-      parentRoute: typeof nonPublicDashboardRouteLazyRoute
+      parentRoute: typeof nonPublicDashboardRouteRoute
     }
     '/(non-public)/dashboard/documents/': {
       id: '/(non-public)/dashboard/documents/'
       path: '/documents'
       fullPath: '/dashboard/documents/'
       preLoaderRoute: typeof nonPublicDashboardDocumentsIndexLazyRouteImport
-      parentRoute: typeof nonPublicDashboardRouteLazyRoute
+      parentRoute: typeof nonPublicDashboardRouteRoute
     }
     '/(non-public)/dashboard/(overview)/': {
       id: '/(non-public)/dashboard/(overview)/'
       path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof nonPublicDashboardoverviewIndexRouteImport
-      parentRoute: typeof nonPublicDashboardRouteLazyRoute
+      parentRoute: typeof nonPublicDashboardRouteRoute
     }
     '/(non-public)/dashboard/$projectId/': {
       id: '/(non-public)/dashboard/$projectId/'
       path: '/$projectId'
       fullPath: '/dashboard/$projectId/'
       preLoaderRoute: typeof nonPublicDashboardProjectIdIndexRouteImport
-      parentRoute: typeof nonPublicDashboardRouteLazyRoute
+      parentRoute: typeof nonPublicDashboardRouteRoute
     }
   }
 }
 
-interface nonPublicDashboardRouteLazyRouteChildren {
+interface nonPublicDashboardRouteRouteChildren {
   nonPublicDashboardProjectIdIndexRoute: typeof nonPublicDashboardProjectIdIndexRoute
   nonPublicDashboardoverviewIndexRoute: typeof nonPublicDashboardoverviewIndexRoute
   nonPublicDashboardDocumentsIndexLazyRoute: typeof nonPublicDashboardDocumentsIndexLazyRoute
   nonPublicDashboardProjectsIndexLazyRoute: typeof nonPublicDashboardProjectsIndexLazyRoute
 }
 
-const nonPublicDashboardRouteLazyRouteChildren: nonPublicDashboardRouteLazyRouteChildren =
+const nonPublicDashboardRouteRouteChildren: nonPublicDashboardRouteRouteChildren =
   {
     nonPublicDashboardProjectIdIndexRoute:
       nonPublicDashboardProjectIdIndexRoute,
@@ -262,20 +256,19 @@ const nonPublicDashboardRouteLazyRouteChildren: nonPublicDashboardRouteLazyRoute
       nonPublicDashboardProjectsIndexLazyRoute,
   }
 
-const nonPublicDashboardRouteLazyRouteWithChildren =
-  nonPublicDashboardRouteLazyRoute._addFileChildren(
-    nonPublicDashboardRouteLazyRouteChildren,
+const nonPublicDashboardRouteRouteWithChildren =
+  nonPublicDashboardRouteRoute._addFileChildren(
+    nonPublicDashboardRouteRouteChildren,
   )
 
 interface nonPublicRouteLazyRouteChildren {
-  nonPublicDashboardRouteLazyRoute: typeof nonPublicDashboardRouteLazyRouteWithChildren
+  nonPublicDashboardRouteRoute: typeof nonPublicDashboardRouteRouteWithChildren
   nonPublicSignInIndexLazyRoute: typeof nonPublicSignInIndexLazyRoute
   nonPublicSignUpIndexLazyRoute: typeof nonPublicSignUpIndexLazyRoute
 }
 
 const nonPublicRouteLazyRouteChildren: nonPublicRouteLazyRouteChildren = {
-  nonPublicDashboardRouteLazyRoute:
-    nonPublicDashboardRouteLazyRouteWithChildren,
+  nonPublicDashboardRouteRoute: nonPublicDashboardRouteRouteWithChildren,
   nonPublicSignInIndexLazyRoute: nonPublicSignInIndexLazyRoute,
   nonPublicSignUpIndexLazyRoute: nonPublicSignUpIndexLazyRoute,
 }

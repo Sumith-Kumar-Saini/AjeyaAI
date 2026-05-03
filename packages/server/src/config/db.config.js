@@ -11,7 +11,6 @@ const MONGO_OPTIONS = {
 export const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
-    logger.info('MongoDB connected successfully');
   } catch (error) {
     logger.error({ error }, 'MongoDB connection failed');
     process.exit(1); // crash app if DB fails to connect

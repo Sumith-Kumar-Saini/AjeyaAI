@@ -81,7 +81,7 @@ export const fetchFeature =
   };
 
 export const changeFeedback =
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       const data =
         await updateFeedback({
@@ -103,6 +103,7 @@ export const changeFeedback =
         data,
       });
     } catch (error) {
+      return next(error)
       res.status(500).json({
         success: false,
         error:

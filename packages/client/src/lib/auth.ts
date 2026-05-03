@@ -16,6 +16,7 @@ export const prefetchAuth = async (): Promise<void> => {
     if (response.data?.accessToken) {
       store.setAccessToken(response.data.accessToken);
     }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     // Usually means the user is not authenticated or refresh token expired
     store.logout();

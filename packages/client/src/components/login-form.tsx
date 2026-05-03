@@ -28,6 +28,7 @@ export function LoginForm({
           <Input
             id="email"
             type="email"
+            name="email"
             placeholder="m@example.com"
             required
             className="bg-background"
@@ -46,6 +47,7 @@ export function LoginForm({
           <Input
             id="password"
             type="password"
+            name="password"
             required
             className="bg-background"
           />
