@@ -1,4 +1,3 @@
-import { motion } from "motion/react";
 import logo from "@/assets/images/logo-full.png";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
@@ -8,7 +7,6 @@ const Navbar = () => {
   const navLinks = [
     { name: "About", href: "/about" },
     { name: "Blog", href: "/blog" },
-    { name: "Dashboard", href: "/dashboard" },
     { name: "Login", href: "/sign-in" },
   ];
 
@@ -42,9 +40,11 @@ const Navbar = () => {
 
         {/* Right Section: CTA & Mobile Menu */}
         <div className="flex items-center gap-4">
-          <Button className="hidden sm:block relative h-10 overflow-hidden rounded-sm bg-foreground text-background px-6">
-            Book a Demo
-          </Button>
+          <Link to="/dashboard">
+            <Button className="hidden sm:block relative h-10 overflow-hidden rounded-sm bg-foreground text-background px-6 cursor-pointer">
+              Dashboard
+            </Button>
+          </Link>
 
           {/* Mobile Menu Button */}
           <Button
