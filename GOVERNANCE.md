@@ -1,4 +1,4 @@
-# 🧠 Ajeya_AI — Project Governance & Architecture
+# 🧠 Ajeya AI — Project Governance & Architecture
 
 > Version 1.0 | Hackathon MVP → scalable post-MVP
 

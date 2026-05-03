@@ -21,7 +21,7 @@ Reject AI suggestions that violate:
 
 ```
 
-You are helping build Ajeya_AI — full-loop AI PM platform.
+You are helping build Ajeya AI — full-loop AI PM platform.
 
 TECH STACK:
 Frontend: React + TS + Vite + Redux + TanStack Router
