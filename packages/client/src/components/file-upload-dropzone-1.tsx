@@ -31,7 +31,7 @@ const FileUploadDropzone1 = () => {
     <FileUpload
       maxFiles={1}
       maxSize={1 * 1024 * 1024}
-      className="w-full max-w-md"
+      className="w-full sm:max-w-md"
       value={files}
       onValueChange={setFiles}
       onFileReject={onFileReject}
