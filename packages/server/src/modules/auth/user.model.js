@@ -18,13 +18,35 @@ const userSchema = new mongoose.Schema(
     },
     passwordHash: {
       type: String,
-      required: true,
       select: false,
+    },
+    authProvider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local',
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+    avatarUrl: {
+      type: String,
+      default: '',
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false,
     },
     role: {
       type: String,
-      enum: ["founder", "pm", "engineer"],
-      default: "pm"
+      enum: ["User", "Admin"],
+      default: "User"
+    },
+    isEnabled: {
+      type: Boolean,
+      default: true,
     }
   },
   { timestamps: true },
