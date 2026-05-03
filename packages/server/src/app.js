@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 import { requestLogger } from "./middleware/requestLogger.middleware.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
@@ -9,6 +10,8 @@ import { aiRoutes } from "./modules/ai/ai.routes.js";
 import uploadRoutes from "./modules/document/document.routes.js";
 import { resultRoutes } from "./modules/aiResult/result.routes.js";
 import { taskRoutes } from "./modules/task/task.routes.js";
+import { adminRoutes } from './modules/admin/admin.routes.js';
+
 export const app = express();
 
 // Middleware
@@ -18,7 +21,11 @@ app.use(
   }),
 );
 app.use(express.json());
-app.use(cors({ origin: "*" })); // MVP: allow all origins
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+})); // MVP: allow all origins
+app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -27,6 +34,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/results", resultRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/documents", uploadRoutes);
+app.use('/api/admin', adminRoutes)
 
 // 404 fallback
 app.use((req, res) =>

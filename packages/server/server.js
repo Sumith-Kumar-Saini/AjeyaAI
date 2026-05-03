@@ -13,8 +13,8 @@ const server = http.createServer(app);
 const startServer = async () => {
   try {
     // Connect to MongoDB
-     connectDB();
-    // logger.info('MongoDB connected successfully');
+    await connectDB();
+    logger.info('MongoDB connected successfully');
 
     // Initialize Redis stub
     await initRedis();
