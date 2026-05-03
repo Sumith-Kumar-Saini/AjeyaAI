@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import "dotenv/config"
 import http from 'http';
 import { app } from './src/app.js';
 import { connectDB } from './src/config/db.config.js';
@@ -7,7 +7,6 @@ import { logger } from './src/utils/logger.js';
 
 
 // for the dotenv
-dotenv.config();
 
 const server = http.createServer(app);
 
