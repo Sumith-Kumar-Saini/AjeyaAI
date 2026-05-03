@@ -1,6 +1,4 @@
 "use client";
-
-import { Link } from "@tanstack/react-router";
 import {
   Card,
   CardHeader,
@@ -9,7 +7,6 @@ import {
   CardFooter,
   CardAction,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 type Detail = {

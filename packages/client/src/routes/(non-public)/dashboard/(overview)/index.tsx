@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
-import { DashboardCard } from "@/components/dashboard-card";
-import { RecentSales } from "@/components/recent-projects";
 import {
   Card,
   CardContent,
@@ -25,33 +23,12 @@ export const Route = createFileRoute("/(non-public)/dashboard/(overview)/")({
   component: RouteComponent,
 });
 
-const data01 = {
-  heading: "Total Projects",
-  count: "134",
-  description: "Total Projects",
-};
-const data02 = {
-  heading: "Total Documents",
-  count: "134",
-  description: "description",
-};
-const data03 = {
-  heading: "Processed Documents",
-  count: "134",
-  description: "description",
-};
-
 function RouteComponent() {
   return (
     <>
       <SiteHeader heading="Overview" />
       {/* <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 sm:grid-cols-2 xl:grid-cols-4 pt-20"> */}
       <div className="flex flex-col justify-center gap-4 px-4 lg:px-6 pt-20">
-        {/* <div className="flex gap-4">
-          <DashboardCard detail={{ ...data01 }} />
-          <DashboardCard detail={{ ...data02 }} />
-          <DashboardCard detail={{ ...data03 }} />
-        </div> */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -102,13 +79,18 @@ function RouteComponent() {
           </CardHeader>
           <CardContent>
             <Table>
+              <TableCaption>
+                <Link to="/dashboard/projects" className="hover:underline">
+                  View ALL Projects
+                </Link>
+              </TableCaption>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-25">Recent Projects</TableHead>
                   <TableHead>Total Features</TableHead>
                   <TableHead>Accepted</TableHead>
                   <TableHead>Rejected</TableHead>
-                  <TableHead>Nutral</TableHead>
+                  <TableHead>Neutral</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -123,7 +105,9 @@ function RouteComponent() {
                       to="/dashboard/$projectId"
                       params={{ projectId: "asdf" }}
                     >
-                      <Button className="rounded-sm cursor-pointer">view Project</Button>
+                      <Button className="rounded-sm cursor-pointer">
+                        view Project
+                      </Button>
                     </Link>
                   </TableCell>
                 </TableRow>
@@ -138,7 +122,9 @@ function RouteComponent() {
                       to="/dashboard/$projectId"
                       params={{ projectId: "asdf" }}
                     >
-                      <Button className="rounded-sm cursor-pointer">view Project</Button>
+                      <Button className="rounded-sm cursor-pointer">
+                        view Project
+                      </Button>
                     </Link>
                   </TableCell>
                 </TableRow>
@@ -153,7 +139,9 @@ function RouteComponent() {
                       to="/dashboard/$projectId"
                       params={{ projectId: "asdf" }}
                     >
-                      <Button className="rounded-sm cursor-pointer">view Project</Button>
+                      <Button className="rounded-sm cursor-pointer">
+                        view Project
+                      </Button>
                     </Link>
                   </TableCell>
                 </TableRow>
@@ -168,15 +156,12 @@ function RouteComponent() {
                       to="/dashboard/$projectId"
                       params={{ projectId: "asdf" }}
                     >
-                      <Button className="rounded-sm cursor-pointer">view Project</Button>
+                      <Button className="rounded-sm cursor-pointer">
+                        view Project
+                      </Button>
                     </Link>
                   </TableCell>
                 </TableRow>
-                <TableCaption>
-                  <Link to="/dashboard/projects">
-                    <Button className="rounded-sm cursor-pointer">View ALL Projects</Button>
-                  </Link>
-                  </TableCaption>
               </TableBody>
             </Table>
           </CardContent>

@@ -1,10 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "./ui/button";
 
-function Cards() {
-  return <div className=""></div>;
-}
-
 export function RecentSales() {
   return (
     <div className="space-y-8">

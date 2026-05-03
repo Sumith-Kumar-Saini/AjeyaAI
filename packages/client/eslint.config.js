@@ -7,6 +7,8 @@ import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
   globalIgnores(["dist"]),
+
+  // Base config for TS/TSX
   {
     files: ["**/*.{ts,tsx}"],
     extends: [
@@ -18,13 +20,13 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
-    overrides: [
-      {
-        files: ["src/routes/**/*.{ts,tsx}"],
-        rules: {
-          "react-refresh/only-export-components": "off",
-        },
-      },
-    ],
+  },
+
+  // ✅ This replaces "overrides"
+  {
+    files: ["src/routes/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
   },
 ]);

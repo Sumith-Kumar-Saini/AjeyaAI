@@ -44,12 +44,11 @@ export function NavMain({
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
 
-    
     if (!name?.trim()) {
       alert("Project name is required");
       return;
     }
-    
+
     try {
       const { data } = await api.post("/projects", {
         name,
@@ -57,15 +56,15 @@ export function NavMain({
       });
 
       console.log("Created project:", data);
-      
+
       // reset form
       form.reset();
-      
+
       return navigate({
         to: "/dashboard/$projectId",
         params: { projectId: "asdf" },
       });
-      
+
       // TODO: close dialog if controlled
       // setOpen(false);
     } catch (error: any) {
@@ -89,6 +88,7 @@ export function NavMain({
             <SidebarMenuButton
               tooltip="Quick Create"
               className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
+              asChild
             >
               <Dialog>
                 <DialogTrigger asChild>
@@ -106,10 +106,7 @@ export function NavMain({
                     <FieldGroup>
                       <Field>
                         <Label htmlFor="name-1">Name</Label>
-                        <Input
-                          id="name-1"
-                          name="name"
-                        />
+                        <Input id="name-1" name="name" />
                       </Field>
                       <Field>
                         <Label htmlFor="username-1">
@@ -118,10 +115,7 @@ export function NavMain({
                             (optional)
                           </span>
                         </Label>
-                        <Input
-                          id="description-1"
-                          name="description"
-                        />
+                        <Input id="description-1" name="description" />
                       </Field>
                     </FieldGroup>
                     <DialogFooter>

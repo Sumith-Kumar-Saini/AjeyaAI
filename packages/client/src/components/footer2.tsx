@@ -1,16 +1,3 @@
-import {
-  FaFacebook,
-  FaGithub,
-  FaInstagram,
-  FaLinkedin,
-  FaTwitter,
-} from "react-icons/fa";
-import {
-  Logo,
-  LogoImageDesktop,
-  LogoImageMobile,
-} from "@/components/logo";
-
 import { cn } from "@/lib/utils";
 
 interface FooterLink {
