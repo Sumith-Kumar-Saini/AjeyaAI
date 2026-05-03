@@ -115,32 +115,6 @@ describe('loginUser', () => {
     expect(redisSet).not.toHaveBeenCalled();
   });
 
-  test('throws a Google login hint when a Google-only user tries password login', async () => {
-    select.mockResolvedValue({
-      _id: { toString: () => 'user-1' },
-      name: 'Ajeya',
-      email: 'ajeya@example.com',
-      role: 'User',
-      authProvider: 'google',
-      googleId: 'google-1',
-      createdAt: new Date('2026-05-02T00:00:00.000Z'),
-    });
-
-    await expect(
-      loginUser({
-        email: 'ajeya@example.com',
-        password: 'password123',
-      }),
-    ).rejects.toMatchObject({
-      message: 'This account uses Google login. Please continue with Google.',
-      statusCode: 401,
-      code: 'GOOGLE_AUTH_REQUIRED',
-    });
-
-    expect(bcrypt.compare).not.toHaveBeenCalled();
-    expect(redisSet).not.toHaveBeenCalled();
-  });
-
   test('throws when password is invalid', async () => {
     select.mockResolvedValue({
       _id: { toString: () => 'user-1' },
