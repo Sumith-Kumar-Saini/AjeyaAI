@@ -167,9 +167,10 @@ const footerProps = {
     title: "Ajeya AI",
     alt: "Ajeya AI logo",
     url: "/",
-    src: LogoFull
+    src: LogoFull,
   },
-  description: "AI co-pilot for product decisions—analyze user feedback, uncover insights, and build smarter roadmaps with confidence.",
+  description:
+    "AI co-pilot for product decisions—analyze user feedback, uncover insights, and build smarter roadmaps with confidence.",
   sections: [
     {
       title: "Product",
@@ -178,8 +179,8 @@ const footerProps = {
         { name: "Pricing", href: "/#pricing" },
         { name: "AI Analysis", href: "/#ai-analysis" },
         { name: "Feedback Loop", href: "/#feedback-loop" },
-        { name: "Roadmap Insights", href: "/#roadmap-insights" }
-      ]
+        { name: "Roadmap Insights", href: "/#roadmap-insights" },
+      ],
     },
     {
       title: "Platform",
@@ -188,8 +189,8 @@ const footerProps = {
         { name: "Data Upload", href: "/data-upload" },
         { name: "AI Results", href: "/results" },
         { name: "History", href: "/history" },
-        { name: "Admin Panel", href: "/admin" }
-      ]
+        { name: "Admin Panel", href: "/admin" },
+      ],
     },
     {
       title: "Resources",
@@ -197,8 +198,8 @@ const footerProps = {
         { name: "Documentation", href: "/#docs" },
         { name: "API Reference", href: "/#api" },
         { name: "Guides", href: "/#guides" },
-        { name: "Blog", href: "/#blog" }
-      ]
+        { name: "Blog", href: "/#blog" },
+      ],
     },
     {
       title: "Company",
@@ -206,15 +207,15 @@ const footerProps = {
         { name: "About", href: "/#about" },
         { name: "Careers", href: "/#careers" },
         { name: "Contact", href: "/#contact" },
-        { name: "Privacy Policy", href: "/#privacy" }
-      ]
-    }
+        { name: "Privacy Policy", href: "/#privacy" },
+      ],
+    },
   ],
   legal: [
     { name: "Terms of Service", href: "/#terms" },
-    { name: "Privacy Policy", href: "/#privacy" }
+    { name: "Privacy Policy", href: "/#privacy" },
   ],
-  copyright: "© 2026 Ajeya AI. All rights reserved."
+  copyright: "© 2026 Ajeya AI. All rights reserved.",
 };
 
 function RouteComponent() {
@@ -228,9 +229,11 @@ function RouteComponent() {
           features={features}
           heading="Build What Matters. Backed by Real Signals."
         />
-        <Testimonial10 {...testimonial} />
-        <Cta11 {...cta} />
-        <Faq1 {...faq} />
+        <div className="flex flex-col gap-24 max-w-7xl mx-auto">
+          <Testimonial10 {...testimonial} />
+          <Cta11 {...cta} />
+          <Faq1 {...faq} />
+        </div>
         <Footer2 {...footerProps} />
       </div>
     </>

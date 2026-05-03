@@ -1,4 +1,3 @@
-import { motion } from "motion/react";
 import logo from "@/assets/images/logo-full.png";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
@@ -8,13 +7,12 @@ const Navbar = () => {
   const navLinks = [
     { name: "About", href: "/about" },
     { name: "Blog", href: "/blog" },
-    { name: "Dashboard", href: "/dashboard" },
     { name: "Login", href: "/sign-in" },
   ];
 
   return (
     <nav className="w-full h-16 flex items-center overflow-clip">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 w-full flex items-center justify-between">
+      <div className="max-w-[85%] mx-auto px-6 lg:px-8 w-full flex items-center justify-between">
         {/* Left Section: Logo */}
         <Link
           to="/"
@@ -23,7 +21,7 @@ const Navbar = () => {
           <img
             src={logo}
             alt="Ajeya Logo"
-            className="absolute inset-0 h-full object-contain w-24"
+            className="absolute inset-0 h-full object-contain w-28 scale-200"
           />
         </Link>
 
@@ -33,7 +31,7 @@ const Navbar = () => {
             <Link
               key={link.name}
               to={link.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="text-lg font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.name}
             </Link>
@@ -42,9 +40,11 @@ const Navbar = () => {
 
         {/* Right Section: CTA & Mobile Menu */}
         <div className="flex items-center gap-4">
-          <Button className="hidden sm:block relative h-10 overflow-hidden rounded-sm bg-foreground text-background px-6">
-            Book a Demo
-          </Button>
+          <Link to="/dashboard">
+            <Button className="hidden sm:block relative h-10 overflow-hidden rounded-sm bg-foreground text-background px-6 cursor-pointer">
+              Dashboard
+            </Button>
+          </Link>
 
           {/* Mobile Menu Button */}
           <Button

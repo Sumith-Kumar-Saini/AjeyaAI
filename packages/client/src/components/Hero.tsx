@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import background from "@/assets/images/background.webp";
 import { useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -25,22 +26,25 @@ const Hero = () => {
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-semibold tracking-tight leading-tight text-white">
               Ajeya AI — Your AI Product Co-Pilot
             </h1>
-            
+
             <p className="mt-6 text-muted-foreground max-w-md text-lg md:text-xl">
-              Upload customer feedback, ask AI, get actionable feature ideas and roadmap suggestions.
+              Upload customer feedback, ask AI, get actionable feature ideas and
+              roadmap suggestions.
             </p>
-            
+
             <div className="flex">
-              <Button 
-                size="lg" 
-                onClick={handleStart}
-                className="mt-8 rounded-sm h-12 px-8 text-base font-medium bg-foreground text-background hover:bg-foreground hover:text-background transition-colors"
-              >
-                Start for Free
-              </Button>
+              <Link to="/dashboard">
+                <Button
+                  size="lg"
+                  onClick={handleStart}
+                  className="mt-8 rounded-sm h-12 px-8 text-base font-medium bg-foreground text-background hover:bg-foreground hover:text-background transition-colors cursor-pointer"
+                >
+                  Start for Free
+                </Button>
+              </Link>
             </div>
           </div>
-          
+
           {/* Right Column (Empty for spacing balance) */}
           <div className="hidden lg:flex" />
         </div>
