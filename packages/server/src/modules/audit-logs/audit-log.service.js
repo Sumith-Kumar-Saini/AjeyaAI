@@ -3,7 +3,7 @@ import { AuditLog } from './audit-log.model.js';
 const toPublicAuditLog = (log) => ({
   id: log._id.toString(),
   action: log.action,
-  userId: log.userId.toString(),
+  userId: log.userId._id ? log.userId._id.toString() : log.userId.toString(),
   targetId: log.targetId?.toString(),
   targetType: log.targetType,
   details: log.details,
@@ -86,6 +86,14 @@ export const getAuditLogs = async (filters = {}, options = {}) => {
       pages: Math.ceil(total / limit),
     },
   };
+};
+
+export const getAuditLogById = async (id) => {
+  const log = await AuditLog.findById(id).populate('userId', 'name email').lean();
+  if (!log) {
+    return null;
+  }
+  return toPublicAuditLog(log);
 };
 
 export const getAuditLogStats = async (startDate, endDate) => {

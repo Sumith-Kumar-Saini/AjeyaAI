@@ -1,4 +1,6 @@
-import { getAuditLogs, getAuditLogStats } from './audit-log.service.js';
+import { getAuditLogs, getAuditLogStats, getAuditLogById } from './audit-log.service.js';
+import { AppError } from '../../utils/AppError.js';
+import { asyncHandler } from '../../utils/asyncHandler.js';
 
 export const getAuditLogsHandler = async (req, res) => {
   try {
@@ -72,6 +74,21 @@ export const getAuditLogsHandler = async (req, res) => {
     });
   }
 };
+
+export const getAuditLogByIdHandler = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  const auditLog = await getAuditLogById(id);
+
+  if (!auditLog) {
+    return next(new AppError('Audit log not found', 404, 'AUDIT_LOG_NOT_FOUND'));
+  }
+
+  return res.status(200).json({
+    success: true,
+    data: auditLog,
+  });
+});
 
 export const getAuditLogStatsHandler = async (req, res) => {
   try {

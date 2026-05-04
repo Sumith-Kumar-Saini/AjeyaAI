@@ -209,12 +209,6 @@ export const googleCallback = async (req, res, next) => {
         res.cookie('accessToken', tokens.accessToken, accessCookieOptions);
         res.cookie('refreshToken', tokens.refreshToken, refreshCookieOptions);
 
-        const redirectUrl = process.env.GOOGLE_AUTH_SUCCESS_REDIRECT_URL;
-
-        if (redirectUrl) {
-            return res.redirect(appendQueryParam(redirectUrl, 'success', 'true'));
-        }
-
         logAudit({
             action: user.role === 'Admin' ? 'ADMIN_LOGIN' : 'USER_LOGIN',
             userId: user.id,
@@ -226,6 +220,15 @@ export const googleCallback = async (req, res, next) => {
             ipAddress: req.ip,
             userAgent: req.headers['user-agent'],
         });
+
+
+
+        const redirectUrl = process.env.GOOGLE_AUTH_SUCCESS_REDIRECT_URL;
+
+        if (redirectUrl) {
+            return res.redirect(appendQueryParam(redirectUrl, 'success', 'true'));
+        }
+
 
         return res.status(200).json({
             success: true,
