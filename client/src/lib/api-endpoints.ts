@@ -39,6 +39,10 @@ export interface User {
   name: string;
 }
 
+export interface RefreshResponse {
+  accessToken: string;
+}
+
 /* =========================
    CORE TYPES
    (Match backend exactly)
@@ -106,8 +110,7 @@ export async function login(email: string, password: string): Promise<void> {
 
   const store = useAuthStore.getState();
 
-  store.setAccessToken(data.accessToken);
-  store.setUser(data.user);
+  store.setAuth(data);
 }
 
 export async function signup(
@@ -119,14 +122,14 @@ export async function signup(
     api.post(ENDPOINTS.SIGNUP, { name, email, password }),
   );
 
-  useAuthStore.getState().setAccessToken(data.accessToken);
+  useAuthStore.getState().setAuth(data);
 }
 
 export async function logout(): Promise<void> {
   await request<void>(api.post(ENDPOINTS.LOGOUT));
 
   const store = useAuthStore.getState();
-  store.clearAuth();
+  store.clear();
 }
 
 export async function getMe(): Promise<User> {
@@ -196,9 +199,10 @@ export async function initializeAuth(): Promise<void> {
   try {
     const user = await getMe();
     store.setUser(user);
+    console.log("API_ENDPOINT:initializeAuth", store);
     store.setInitialized(true);
   } catch {
-    store.clearAuth();
+    store.clear();
   } finally {
     store.setInitialized(true);
   }
@@ -238,4 +242,8 @@ export async function getTasksByFeature(
   return request<EngineeringTask[]>(
     api.get(`${ENDPOINTS.TASKS}/${resultId}/features/${featureId}`),
   );
+}
+
+export async function refreshAuth(): Promise<RefreshResponse> {
+  return request<RefreshResponse>(api.post("/auth/refresh"));
 }

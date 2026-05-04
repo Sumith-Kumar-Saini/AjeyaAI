@@ -24,6 +24,21 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import type React from "react";
 import { useProjectsStore } from "@/stores/projectStore";
+import { toast } from "sonner"; // ✅ Toast integration
+
+// ✅ Helper to extract error message // Added error handling
+const getErrorMessage = (error: unknown): string => {
+  if (typeof error === "object" && error !== null) {
+    const err = error as any;
+    return (
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.message ||
+      "Something went wrong. Please try again."
+    );
+  }
+  return "Something went wrong. Please try again.";
+};
 
 export function NavMain({
   items,
@@ -48,32 +63,42 @@ export function NavMain({
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
 
+    // ✅ Validation handling with toast // Added validation feedback
     if (!name?.trim()) {
-      alert("Project name is required");
+      toast.warning("Project name is required");
       return;
     }
 
     try {
-      // call Zustand action (which calls API internally)
-      await addProject({ name, description });
+      // ✅ Promise-based toast handling // Added toast.promise
+      toast.promise(
+        addProject({ name, description }).then(() => {
+          const latestProject =
+            useProjectsStore.getState().projects[0];
 
-      // latest project (we prepend in store)
-      const latestProject = useProjectsStore.getState().projects[0];
+          if (!latestProject?.id) {
+            throw new Error("Project created but failed to load");
+          }
 
-      form.reset();
+          form.reset();
 
-      navigate({
-        to: "/dashboard/$projectId",
-        params: { projectId: latestProject.id },
-      });
-    } catch (error: any) {
-      console.error(error);
-
-      alert(
-        error?.response?.data?.error ||
-          error?.message ||
-          "Something went wrong"
+          navigate({
+            to: "/dashboard/$projectId",
+            params: { projectId: latestProject.id },
+          });
+        }).catch((error) => {
+          throw new Error(getErrorMessage(error));
+        }),
+        {
+          loading: "Creating project...",
+          success: "Project created successfully",
+          error: (err) => err.message,
+        },
       );
+    } catch (error) {
+      // ✅ Fallback error handling (prevents silent failures)
+      toast.error(getErrorMessage(error)); // Added error handling
+      console.error(error);
     }
   };
 
@@ -150,7 +175,6 @@ export function NavMain({
           ))}
         </SidebarMenu>
 
-        {/* 🔥 Optional: render projects dynamically */}
         {projects.length > 0 && (
           <SidebarMenu>
             {projects.map((project) => (

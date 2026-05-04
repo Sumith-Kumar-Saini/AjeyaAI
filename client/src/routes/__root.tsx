@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import LoadingScreen from "@/components/loading-screen";
 
 export const Route = createRootRoute({
-  beforeLoad: async () => {
+  loader: async () => {
     await prefetchAuth();
   },
   pendingComponent: LoadingScreen,

@@ -1,28 +1,35 @@
-import type { User } from "@/lib/api-endpoints";
 import { create } from "zustand";
+import type { User } from "@/lib/api-endpoints";
 
 interface AuthState {
   user: User | null;
   accessToken: string | null;
-  isAuthenticated: boolean;
   isInitialized: boolean;
-  setAccessToken: (token: string | null) => void;
-  setInitialized: (status: boolean) => void;
+
+  setAuth: (data: { user: User; accessToken: string }) => void;
   setUser: (user: User) => void;
-  clearAuth: () => void;
-  logout: () => void;
+  setAccessToken: (token: string) => void;
+  clear: () => void;
+  setInitialized: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   accessToken: null,
-  isAuthenticated: false,
   isInitialized: false,
-  setAccessToken: (token) =>
-    set({ accessToken: token, isAuthenticated: !!token }),
-  setInitialized: (status) => set({ isInitialized: status }),
-  logout: () => set({ accessToken: null, isAuthenticated: false }),
+
+  setAuth: ({ user, accessToken }) =>
+    set({
+      user,
+      accessToken,
+    }),
   setUser: (user) => set({ user }),
-  clearAuth: () =>
-    set({ accessToken: null, isAuthenticated: false, user: null }),
+  setAccessToken: (token) => set({ accessToken: token }),
+  clear: () =>
+    set({
+      user: null,
+      accessToken: null,
+    }),
+
+  setInitialized: (value) => set({ isInitialized: value }),
 }));
