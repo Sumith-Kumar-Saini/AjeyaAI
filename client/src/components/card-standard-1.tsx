@@ -35,7 +35,6 @@ const CardStandard1 = ({
   const navigate = useNavigate();
 
   const handleReject = () => {
-    console.log(isRejected);
     if (isRejected) return; // extra safety
     onAction("reject");
   };

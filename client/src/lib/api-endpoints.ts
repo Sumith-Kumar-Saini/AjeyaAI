@@ -30,6 +30,7 @@ export interface ApiResponse<T> {
 ========================= */
 export interface AuthResponse {
   accessToken: string;
+  user: User;
 }
 
 export interface User {
@@ -103,7 +104,10 @@ export async function login(email: string, password: string): Promise<void> {
     api.post(ENDPOINTS.LOGIN, { email, password }),
   );
 
-  useAuthStore.getState().setAccessToken(data.accessToken);
+  const store = useAuthStore.getState();
+
+  store.setAccessToken(data.accessToken);
+  store.setUser(data.user);
 }
 
 export async function signup(
@@ -224,5 +228,14 @@ export async function uploadDocument(
         "Content-Type": "multipart/form-data",
       },
     }),
+  );
+}
+
+export async function getTasksByFeature(
+  resultId: string,
+  featureId: string,
+): Promise<EngineeringTask[]> {
+  return request<EngineeringTask[]>(
+    api.get(`${ENDPOINTS.TASKS}/${resultId}/features/${featureId}`),
   );
 }

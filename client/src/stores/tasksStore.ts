@@ -1,20 +1,22 @@
-// src/stores/tasksStore.ts
 import { create } from "zustand";
 import type { EngineeringTask } from "@/lib/api-endpoints";
 
 interface TasksState {
   tasksByFeature: Record<string, EngineeringTask[]>;
+  loadedByFeature: Record<string, boolean>;
 
   setTasks: (featureId: string, tasks: EngineeringTask[]) => void;
   addTasks: (featureId: string, tasks: EngineeringTask[]) => void;
 
   getTasksCount: (featureId: string) => number;
+  isTasksLoaded: (featureId: string) => boolean;
 
   clearTasks: (featureId: string) => void;
 }
 
 export const useTasksStore = create<TasksState>((set, get) => ({
   tasksByFeature: {},
+  loadedByFeature: {},
 
   setTasks: (featureId, tasks) =>
     set((state) => ({
@@ -22,16 +24,17 @@ export const useTasksStore = create<TasksState>((set, get) => ({
         ...state.tasksByFeature,
         [featureId]: tasks,
       },
+      loadedByFeature: {
+        ...state.loadedByFeature,
+        [featureId]: true,
+      },
     })),
 
   addTasks: (featureId, tasks) =>
     set((state) => ({
       tasksByFeature: {
         ...state.tasksByFeature,
-        [featureId]: [
-          ...(state.tasksByFeature[featureId] || []),
-          ...tasks,
-        ],
+        [featureId]: [...(state.tasksByFeature[featureId] || []), ...tasks],
       },
     })),
 
@@ -39,10 +42,21 @@ export const useTasksStore = create<TasksState>((set, get) => ({
     return get().tasksByFeature[featureId]?.length || 0;
   },
 
+  isTasksLoaded: (featureId) => {
+    return get().loadedByFeature[featureId] === true;
+  },
+
   clearTasks: (featureId) =>
     set((state) => {
-      const copy = { ...state.tasksByFeature };
-      delete copy[featureId];
-      return { tasksByFeature: copy };
+      const tasksCopy = { ...state.tasksByFeature };
+      const loadedCopy = { ...state.loadedByFeature };
+
+      delete tasksCopy[featureId];
+      delete loadedCopy[featureId];
+
+      return {
+        tasksByFeature: tasksCopy,
+        loadedByFeature: loadedCopy,
+      };
     }),
 }));

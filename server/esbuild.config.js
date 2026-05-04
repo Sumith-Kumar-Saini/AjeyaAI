@@ -19,19 +19,3 @@ esbuild.build({
 }).then(() => {
   console.log('✅ Backend built successfully');
 }).catch(() => process.exit(1));
-
-// esbuild.build({
-//   entryPoints: ['src/server.js'],  // main entry
-//   bundle: true,
-//   platform: 'node',                // Node.js environment
-//   target: ['node20'],              // match your Docker Node version
-//   outfile: 'dist/server.js',       // single output file
-//   minify: isProd,
-//   sourcemap: !isProd,
-//   plugins: [nodeExternalsPlugin()], // exclude node_modules (bcrypt, mongoose, etc.)
-//   define: {
-//     'process.env.NODE_ENV': `"${process.env.NODE_ENV || 'development'}"`,
-//   },
-// }).then(() => {
-//   console.log('✅ Backend built successfully');
-// }).catch(() => process.exit(1));

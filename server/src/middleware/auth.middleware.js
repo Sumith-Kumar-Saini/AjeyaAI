@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { AppError } from '../utils/AppError.js';
 import { getRedisClient } from '../config/redis.config.js';
 import { User } from '../modules/auth/user.model.js';
+import { logger } from '../utils/logger.js';
 
 const getAccessToken = (req) => {
   const authHeader = req.get('authorization');
@@ -60,6 +61,7 @@ export const authMiddleware = async (req, res, next) => {
 
     return next();
   } catch (error) {
+    logger.error(error)
     if (error.name === 'TokenExpiredError') {
       return next(new AppError('Token has expired', 401, 'TOKEN_EXPIRED'));
     }

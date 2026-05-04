@@ -26,19 +26,15 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
     const featureStore = useFeaturesStore.getState();
     const tasksStore = useTasksStore.getState();
 
-    console.log("Loader: Ensuring project", projectId);
     let project;
     try {
       project = await ensureProject(projectId);
     } catch (error) {
-      console.log("Loader: Error ensuring project", error);
       throw redirect({ to: "/dashboard" });
     }
-    console.log("Loader: Project found", project);
 
     // ✅ This should ALWAYS exist now
     if (!project || project.id !== projectId) {
-      console.log("Loader: Redirecting because project not found");
       throw redirect({ to: "/dashboard" });
     }
 
@@ -52,7 +48,6 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
     try {
       results = await getResults(projectId);
     } catch (error) {
-      console.log("Loader: Error fetching results", error);
       // Continue without results
     }
 
