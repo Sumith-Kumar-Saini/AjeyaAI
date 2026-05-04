@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { toast } from "sonner";
 import {
   analyzeFeedback,
@@ -20,6 +21,19 @@ import { useTasksStore } from "@/stores/tasksStore";
 import type { Project } from "@/lib/api-projects";
 import ensureProject from "@/lib/ensure-projects";
 
+// ✅ Helper to extract meaningful error messages // Added error handling
+const getErrorMessage = (error: unknown): string => {
+  if (typeof error === "object" && error !== null) {
+    const err = error as any;
+    return (
+      err?.response?.data?.message ||
+      err?.message ||
+      "Something went wrong. Please try again."
+    );
+  }
+  return "Something went wrong. Please try again.";
+};
+
 export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
   loader: async ({ params }) => {
     const { projectId } = params;
@@ -31,11 +45,14 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
     let project;
     try {
       project = await ensureProject(projectId);
-    } catch {
+    } catch (error) {
+      // Added toast feedback
+      toast.error(getErrorMessage(error));
       throw redirect({ to: "/dashboard" });
     }
 
     if (!project || project.id !== projectId) {
+      toast.error("Invalid project"); // Added feedback
       throw redirect({ to: "/dashboard" });
     }
 
@@ -44,13 +61,14 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
     let results: Result[] = [];
     try {
       results = await getResults(projectId);
-    } catch {}
+    } catch (error) {
+      toast.error(getErrorMessage(error)); // Improved error message
+    }
 
     if (results.length > 0) {
       const latest = results[0];
 
       const mappedFeatures =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (latest as any).featureIdeas?.map((f: any) => {
           const tasks = f.engineeringTasks || [];
           tasksStore.setTasks(f._id, tasks);
@@ -92,10 +110,8 @@ function RouteComponent() {
 
   const updateLocalFeedback = useFeaturesStore((s) => s.updateFeatureFeedback);
 
-  // ✅ hide only when backend data exists
   const shouldHideUpload = features && features.length > 0;
 
-  // ✅ FILE VALIDATION
   const isValidFile = (file: File) => {
     const allowedTypes = ["text/csv", "text/plain"];
     const allowedExtensions = [".csv", ".txt"];
@@ -115,16 +131,23 @@ function RouteComponent() {
 
     const feedback = action === "accept" ? "accepted" : "rejected";
 
-    try {
-      await updateFeedback(resultId, featureId, feedback);
-      updateLocalFeedback(currentProject.id, featureId, feedback);
-      toast.success(`Feature ${feedback}`);
-    } catch {
-      toast.error("Failed to update feedback");
-    }
+    // ✅ Promise-based toast // Added toast.promise
+    toast.promise(
+      updateFeedback(resultId, featureId, feedback)
+        .then(() => {
+          updateLocalFeedback(currentProject.id, featureId, feedback);
+        })
+        .catch((error) => {
+          throw new Error(getErrorMessage(error));
+        }),
+      {
+        loading: "Updating feedback...",
+        success: `Feature ${feedback}`,
+        error: (err) => err.message,
+      },
+    );
   };
 
-  // 🔥 MAIN FLOW
   const handleUpload = async () => {
     if (!currentProject) return;
 
@@ -133,7 +156,6 @@ function RouteComponent() {
       return;
     }
 
-    // ✅ FILE TYPE CHECK
     if (selectedFile && !isValidFile(selectedFile)) {
       toast.error("Only CSV or TXT files are allowed");
       return;
@@ -142,25 +164,44 @@ function RouteComponent() {
     try {
       setIsUploading(true);
 
-      // 1️⃣ Upload
-      await uploadDocument({
-        projectId: currentProject.id,
-        file: selectedFile || undefined,
-        text: textInput || undefined,
-      });
-
-      toast.success("Document uploaded");
+      // ✅ Upload with toast.promise
+      toast.promise(
+        uploadDocument({
+          projectId: currentProject.id,
+          file: selectedFile || undefined,
+          text: textInput || undefined,
+        }).catch((error) => {
+          throw new Error(getErrorMessage(error));
+        }),
+        {
+          loading: "Uploading document...",
+          success: "Document uploaded successfully",
+          error: (err) => err.message,
+        },
+      );
 
       // 2️⃣ AUTO ANALYZE
       if (textInput.trim()) {
         setIsAnalyzing(true);
+        const promise = analyzeFeedback(currentProject.id, textInput);
 
-        const result = await analyzeFeedback(currentProject.id, textInput);
+        const result = await promise;
+        toast.promise(
+          promise.catch((error) => {
+            throw new Error(getErrorMessage(error));
+          }),
+          {
+            loading: "Analyzing feedback...",
+            success: "Features generated",
+            error: (err) => err.message,
+          },
+        );
+
+        if (!result) return; // Added guard
 
         const tasksStore = useTasksStore.getState();
 
         const mappedFeatures =
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (result as any).featureIdeas?.map((f: any) => {
             const tasks = f.engineeringTasks || [];
             tasksStore.setTasks(f._id, tasks);
@@ -176,16 +217,13 @@ function RouteComponent() {
 
         useFeaturesStore
           .getState()
-          .setFeatures(currentProject.id, result._id, mappedFeatures);
-
-        toast.success("Features generated");
+          .setFeatures(currentProject.id, (result as any)._id, mappedFeatures);
       }
 
       setSelectedFile(null);
       setTextInput("");
-
-    } catch {
-      toast.error("Something failed");
+    } catch (error) {
+      toast.error(getErrorMessage(error)); // Improved fallback
     } finally {
       setIsUploading(false);
       setIsAnalyzing(false);
@@ -193,17 +231,33 @@ function RouteComponent() {
   };
 
   const handleSubmit = async () => {
-    if (!currentProject || !textInput.trim()) return;
+    if (!currentProject || !textInput.trim()) {
+      toast.warning("Please enter text to analyze"); // Added validation feedback
+      return;
+    }
 
     try {
       setIsAnalyzing(true);
 
-      const result = await analyzeFeedback(currentProject.id, textInput);
+        const promise = analyzeFeedback(currentProject.id, textInput);
+
+        const result = await promise;
+        toast.promise(
+        analyzeFeedback(currentProject.id, textInput).catch((error) => {
+          throw new Error(getErrorMessage(error));
+        }),
+        {
+          loading: "Analyzing feedback...",
+          success: "Features generated",
+          error: (err) => err.message,
+        },
+      );
+
+      if (!result) return;
 
       const tasksStore = useTasksStore.getState();
 
       const mappedFeatures =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (result as any).featureIdeas?.map((f: any) => {
           const tasks = f.engineeringTasks || [];
           tasksStore.setTasks(f._id, tasks);
@@ -219,11 +273,9 @@ function RouteComponent() {
 
       useFeaturesStore
         .getState()
-        .setFeatures(currentProject.id, result._id, mappedFeatures);
-
-      toast.success("Features generated");
-    } catch {
-      toast.error("Failed");
+        .setFeatures(currentProject.id, (result as any)._id, mappedFeatures);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     } finally {
       setIsAnalyzing(false);
     }
@@ -234,16 +286,19 @@ function RouteComponent() {
       <SiteHeader heading={currentProject?.name || "Project"} />
 
       <div className="p-4 space-y-8">
-        <h3 className="text-center text-lg font-semibold">
-          Generate Features Idea
-        </h3>
-
         {!shouldHideUpload && (
           <>
+            <h3 className="text-center text-lg font-semibold">
+              Generate Features Idea
+            </h3>
             <div className="flex py-6 w-full justify-center gap-6 items-start flex-col sm:flex-row">
               <div className="w-full max-w-md">
                 <FileUploadDropzone1
                   onFileSelect={(file) => {
+                    if (!file) {
+                      toast.error("Please upload CSV or TXT file");
+                      return;
+                    }
                     if (!isValidFile(file)) {
                       toast.error("Only CSV or TXT files are allowed");
                       return;
