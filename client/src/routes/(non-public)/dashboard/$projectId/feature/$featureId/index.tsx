@@ -141,7 +141,6 @@ export const Route = createFileRoute(
 
   component: RouteComponent,
 });
-
 function RouteComponent() {
   const { projectId, featureId } = Route.useParams();
 

@@ -1,5 +1,9 @@
 import { toast } from "sonner";
-import { analyzeFeedback, updateFeedback, type Result } from "@/lib/api-endpoints";
+import {
+  analyzeFeedback,
+  updateFeedback,
+  type Result,
+} from "@/lib/api-endpoints";
 import { useFeaturesStore } from "@/stores/featuresStore";
 import CardStandard1 from "@/components/card-standard-1";
 import FileUploadDropzone1 from "@/components/file-upload-dropzone-1";
@@ -27,36 +31,28 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
     let project;
     try {
       project = await ensureProject(projectId);
-    } catch (error) {
+    } catch {
       throw redirect({ to: "/dashboard" });
     }
 
-    // ✅ This should ALWAYS exist now
     if (!project || project.id !== projectId) {
       throw redirect({ to: "/dashboard" });
     }
 
-    // ✅ Set current project
     projectStore.setCurrentProject(project);
 
-    // =========================
-    // FETCH RESULTS + HYDRATE
-    // =========================
     let results: Result[] = [];
     try {
       results = await getResults(projectId);
-    } catch (error) {
-      // Continue without results
-    }
+    } catch {}
 
     if (results.length > 0) {
       const latest = results[0];
 
       const mappedFeatures =
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (latest as any).featureIdeas?.map((f: any) => {
           const tasks = f.engineeringTasks || [];
-
-          // ✅ hydrate tasks store
           tasksStore.setTasks(f._id, tasks);
 
           return {
@@ -64,7 +60,7 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
             title: f.title,
             description: f.justification || "",
             feedback: f.feedback,
-            engineeringTasks: [], // 🚫 no duplication
+            engineeringTasks: [],
           };
         }) || [];
 
@@ -78,15 +74,14 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
   component: RouteComponent,
 });
 
-
 function RouteComponent() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [textInput, setTextInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-
   const currentProject = useProjectsStore<Project>((s) => s.currentProject!);
+
   const features = useFeaturesStore(
     (s) => s.featuresByProject[currentProject?.id || ""],
   );
@@ -97,27 +92,39 @@ function RouteComponent() {
 
   const updateLocalFeedback = useFeaturesStore((s) => s.updateFeatureFeedback);
 
+  // ✅ hide only when backend data exists
+  const shouldHideUpload = features && features.length > 0;
+
+  // ✅ FILE VALIDATION
+  const isValidFile = (file: File) => {
+    const allowedTypes = ["text/csv", "text/plain"];
+    const allowedExtensions = [".csv", ".txt"];
+    const fileName = file.name.toLowerCase();
+
+    return (
+      allowedTypes.includes(file.type) ||
+      allowedExtensions.some((ext) => fileName.endsWith(ext))
+    );
+  };
+
   const handleAction = async (
     featureId: string,
     action: "accept" | "reject",
   ) => {
-    // if (!resultId || !currentProject) return;
     if (!currentProject) return;
 
     const feedback = action === "accept" ? "accepted" : "rejected";
 
     try {
       await updateFeedback(resultId, featureId, feedback);
-
-      // 🔥 optimistic UI update
       updateLocalFeedback(currentProject.id, featureId, feedback);
-
       toast.success(`Feature ${feedback}`);
-    } catch (err) {
+    } catch {
       toast.error("Failed to update feedback");
     }
   };
 
+  // 🔥 MAIN FLOW
   const handleUpload = async () => {
     if (!currentProject) return;
 
@@ -126,46 +133,79 @@ function RouteComponent() {
       return;
     }
 
+    // ✅ FILE TYPE CHECK
+    if (selectedFile && !isValidFile(selectedFile)) {
+      toast.error("Only CSV or TXT files are allowed");
+      return;
+    }
+
     try {
       setIsUploading(true);
 
+      // 1️⃣ Upload
       await uploadDocument({
         projectId: currentProject.id,
         file: selectedFile || undefined,
         text: textInput || undefined,
       });
 
-      toast.success("Document uploaded successfully");
+      toast.success("Document uploaded");
+
+      // 2️⃣ AUTO ANALYZE
+      if (textInput.trim()) {
+        setIsAnalyzing(true);
+
+        const result = await analyzeFeedback(currentProject.id, textInput);
+
+        const tasksStore = useTasksStore.getState();
+
+        const mappedFeatures =
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (result as any).featureIdeas?.map((f: any) => {
+            const tasks = f.engineeringTasks || [];
+            tasksStore.setTasks(f._id, tasks);
+
+            return {
+              id: f._id,
+              title: f.title,
+              description: f.justification || "",
+              feedback: f.feedback,
+              engineeringTasks: [],
+            };
+          }) || [];
+
+        useFeaturesStore
+          .getState()
+          .setFeatures(currentProject.id, result._id, mappedFeatures);
+
+        toast.success("Features generated");
+      }
 
       setSelectedFile(null);
       setTextInput("");
+
     } catch {
-      toast.error("Upload failed");
+      toast.error("Something failed");
     } finally {
       setIsUploading(false);
+      setIsAnalyzing(false);
     }
   };
 
   const handleSubmit = async () => {
-    if (!currentProject) return;
-
-    if (!textInput.trim()) {
-      toast.error("Please enter a question for analysis");
-      return;
-    }
+    if (!currentProject || !textInput.trim()) return;
 
     try {
       setIsAnalyzing(true);
 
       const result = await analyzeFeedback(currentProject.id, textInput);
 
-      const tasksStore = useTasksStore.getState(); // ✅ NEW
+      const tasksStore = useTasksStore.getState();
 
       const mappedFeatures =
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (result as any).featureIdeas?.map((f: any) => {
           const tasks = f.engineeringTasks || [];
-
-          // ✅ hydrate tasks
           tasksStore.setTasks(f._id, tasks);
 
           return {
@@ -181,9 +221,9 @@ function RouteComponent() {
         .getState()
         .setFeatures(currentProject.id, result._id, mappedFeatures);
 
-      toast.success("Features generated successfully");
+      toast.success("Features generated");
     } catch {
-      toast.error("Failed to analyze feedback");
+      toast.error("Failed");
     } finally {
       setIsAnalyzing(false);
     }
@@ -193,41 +233,44 @@ function RouteComponent() {
     <>
       <SiteHeader heading={currentProject?.name || "Project"} />
 
-      <div className="p-4">
-        <h3 className="mx-auto w-full flex justify-center">
-          <span>Generate Features Idea</span>
+      <div className="p-4 space-y-8">
+        <h3 className="text-center text-lg font-semibold">
+          Generate Features Idea
         </h3>
 
-        <div className="flex py-10 w-full justify-center gap-6 items-start flex-col sm:flex-row">
-          <div className="w-full max-w-md">
-            {/* A upload box */}
-            <FileUploadDropzone1 onFileSelect={setSelectedFile} />
-          </div>
-          <div className="w-full max-w-md">
-            {/* Text area */}
-            <TextareaFrom1 onTextChange={setTextInput} />
-          </div>
-        </div>
+        {!shouldHideUpload && (
+          <>
+            <div className="flex py-6 w-full justify-center gap-6 items-start flex-col sm:flex-row">
+              <div className="w-full max-w-md">
+                <FileUploadDropzone1
+                  onFileSelect={(file) => {
+                    if (!isValidFile(file)) {
+                      toast.error("Only CSV or TXT files are allowed");
+                      return;
+                    }
+                    setSelectedFile(file);
+                  }}
+                />
+              </div>
 
-        <div className="pb-5 -mt-5 w-full flex gap-6 justify-center items-center">
-          <Button
-            className="cursor-pointer"
-            onClick={handleUpload}
-            disabled={isUploading}
-          >
-            {isUploading ? "Uploading..." : "Upload"}
-          </Button>
+              <div className="w-full max-w-md">
+                <TextareaFrom1 onTextChange={setTextInput} />
+              </div>
+            </div>
 
-          <Button
-            className="cursor-pointer"
-            onClick={handleSubmit}
-            disabled={isAnalyzing}
-          >
-            {isAnalyzing ? "Analyzing..." : "Submit"}
-          </Button>
-        </div>
+            <div className="flex gap-6 justify-center">
+              <Button onClick={handleUpload} disabled={isUploading}>
+                {isUploading ? "Uploading..." : "Upload"}
+              </Button>
 
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <Button onClick={handleSubmit} disabled={isAnalyzing}>
+                {isAnalyzing ? "Analyzing..." : "Submit"}
+              </Button>
+            </div>
+          </>
+        )}
+
+        <div className="grid mt-4 gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {features?.length ? (
             features.map((feature) => (
               <CardStandard1
