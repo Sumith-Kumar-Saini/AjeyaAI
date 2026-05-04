@@ -16,13 +16,12 @@ import { LayoutDashboardIcon, FolderIcon, UsersIcon } from "lucide-react";
 import { Avatar, AvatarImage } from "./ui/avatar";
 import Logo from "@/assets/logo.png";
 import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
+import { useAuthStore } from "@/stores/authStore";
+import { logout } from "@/lib/api-endpoints";
+import { toast } from "sonner";
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Overview",
@@ -44,6 +43,29 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+
+  React.useEffect(() => {
+    if (!user) {
+      navigate({ to: "/sign-in" });
+    }
+  }, [user, navigate]);
+
+  const handleLogout = () => {
+    const promise = logout().then(() => {
+      navigate({ to: "/sign-in" });
+    });
+
+    toast.promise(promise, {
+      loading: "Logging out...",
+      success: "Logged out successfully 👋",
+      error: "Failed to logout",
+    });
+  };
+
+  if (!user) return null;
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -68,7 +90,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} handleLogout={handleLogout} />
       </SidebarFooter>
     </Sidebar>
   );

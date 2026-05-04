@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import {
   Card,
@@ -19,32 +18,10 @@ import {
 } from "@/components/ui/table";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { getMe } from "@/lib/api-endpoints";
-import { useAuthStore } from "@/stores/authStore";
 import DashboardSkeleton from "@/components/dashboard-skeleton";
 import { useProjectsStore } from "@/stores/projectStore";
 
 export const Route = createFileRoute("/(non-public)/dashboard/(overview)/")({
-  loader: async () => {
-    const store = useAuthStore.getState();
-
-    try {
-      // If already have user, skip API call
-      if (store.user) return null;
-
-      const user = await getMe();
-      store.setUser(user);
-
-      return null;
-    } catch (error) {
-      store.clearAuth();
-
-      throw redirect({
-        to: "/sign-in",
-      });
-    }
-  },
-
   pendingComponent: () => <DashboardSkeleton />, // loading screen
   component: RouteComponent,
 });

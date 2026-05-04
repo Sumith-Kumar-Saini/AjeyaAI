@@ -1,7 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { toast } from "sonner";
-import { analyzeFeedback, updateFeedback, type Result } from "@/lib/api-endpoints";
+import {
+  analyzeFeedback,
+  updateFeedback,
+  type Result,
+} from "@/lib/api-endpoints";
 import { useFeaturesStore } from "@/stores/featuresStore";
 import CardStandard1 from "@/components/card-standard-1";
 import FileUploadDropzone1 from "@/components/file-upload-dropzone-1";
@@ -18,6 +21,19 @@ import { useTasksStore } from "@/stores/tasksStore";
 import type { Project } from "@/lib/api-projects";
 import ensureProject from "@/lib/ensure-projects";
 
+// ✅ Helper to extract meaningful error messages // Added error handling
+const getErrorMessage = (error: unknown): string => {
+  if (typeof error === "object" && error !== null) {
+    const err = error as any;
+    return (
+      err?.response?.data?.message ||
+      err?.message ||
+      "Something went wrong. Please try again."
+    );
+  }
+  return "Something went wrong. Please try again.";
+};
+
 export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
   loader: async ({ params }) => {
     const { projectId } = params;
@@ -26,34 +42,27 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
     const featureStore = useFeaturesStore.getState();
     const tasksStore = useTasksStore.getState();
 
-    console.log("Loader: Ensuring project", projectId);
     let project;
     try {
       project = await ensureProject(projectId);
     } catch (error) {
-      console.log("Loader: Error ensuring project", error);
+      // Added toast feedback
+      toast.error(getErrorMessage(error));
       throw redirect({ to: "/dashboard" });
     }
-    console.log("Loader: Project found", project);
 
-    // ✅ This should ALWAYS exist now
     if (!project || project.id !== projectId) {
-      console.log("Loader: Redirecting because project not found");
+      toast.error("Invalid project"); // Added feedback
       throw redirect({ to: "/dashboard" });
     }
 
-    // ✅ Set current project
     projectStore.setCurrentProject(project);
 
-    // =========================
-    // FETCH RESULTS + HYDRATE
-    // =========================
     let results: Result[] = [];
     try {
       results = await getResults(projectId);
     } catch (error) {
-      console.log("Loader: Error fetching results", error);
-      // Continue without results
+      toast.error(getErrorMessage(error)); // Improved error message
     }
 
     if (results.length > 0) {
@@ -62,8 +71,6 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
       const mappedFeatures =
         (latest as any).featureIdeas?.map((f: any) => {
           const tasks = f.engineeringTasks || [];
-
-          // ✅ hydrate tasks store
           tasksStore.setTasks(f._id, tasks);
 
           return {
@@ -71,7 +78,7 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
             title: f.title,
             description: f.justification || "",
             feedback: f.feedback,
-            engineeringTasks: [], // 🚫 no duplication
+            engineeringTasks: [],
           };
         }) || [];
 
@@ -85,11 +92,6 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
   component: RouteComponent,
 });
 
-
-
-
-
-
 function RouteComponent() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [textInput, setTextInput] = useState("");
@@ -97,6 +99,7 @@ function RouteComponent() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const currentProject = useProjectsStore<Project>((s) => s.currentProject!);
+
   const features = useFeaturesStore(
     (s) => s.featuresByProject[currentProject?.id || ""],
   );
@@ -107,25 +110,42 @@ function RouteComponent() {
 
   const updateLocalFeedback = useFeaturesStore((s) => s.updateFeatureFeedback);
 
+  const shouldHideUpload = features && features.length > 0;
+
+  const isValidFile = (file: File) => {
+    const allowedTypes = ["text/csv", "text/plain"];
+    const allowedExtensions = [".csv", ".txt"];
+    const fileName = file.name.toLowerCase();
+
+    return (
+      allowedTypes.includes(file.type) ||
+      allowedExtensions.some((ext) => fileName.endsWith(ext))
+    );
+  };
+
   const handleAction = async (
     featureId: string,
     action: "accept" | "reject",
   ) => {
-    // if (!resultId || !currentProject) return;
     if (!currentProject) return;
 
     const feedback = action === "accept" ? "accepted" : "rejected";
 
-    try {
-      await updateFeedback(resultId, featureId, feedback);
-
-      // 🔥 optimistic UI update
-      updateLocalFeedback(currentProject.id, featureId, feedback);
-
-      toast.success(`Feature ${feedback}`);
-    } catch (err) {
-      toast.error("Failed to update feedback");
-    }
+    // ✅ Promise-based toast // Added toast.promise
+    toast.promise(
+      updateFeedback(resultId, featureId, feedback)
+        .then(() => {
+          updateLocalFeedback(currentProject.id, featureId, feedback);
+        })
+        .catch((error) => {
+          throw new Error(getErrorMessage(error));
+        }),
+      {
+        loading: "Updating feedback...",
+        success: `Feature ${feedback}`,
+        error: (err) => err.message,
+      },
+    );
   };
 
   const handleUpload = async () => {
@@ -136,46 +156,110 @@ function RouteComponent() {
       return;
     }
 
+    if (selectedFile && !isValidFile(selectedFile)) {
+      toast.error("Only CSV or TXT files are allowed");
+      return;
+    }
+
     try {
       setIsUploading(true);
 
-      await uploadDocument({
-        projectId: currentProject.id,
-        file: selectedFile || undefined,
-        text: textInput || undefined,
-      });
+      // ✅ Upload with toast.promise
+      toast.promise(
+        uploadDocument({
+          projectId: currentProject.id,
+          file: selectedFile || undefined,
+          text: textInput || undefined,
+        }).catch((error) => {
+          throw new Error(getErrorMessage(error));
+        }),
+        {
+          loading: "Uploading document...",
+          success: "Document uploaded successfully",
+          error: (err) => err.message,
+        },
+      );
 
-      toast.success("Document uploaded successfully");
+      // 2️⃣ AUTO ANALYZE
+      if (textInput.trim()) {
+        setIsAnalyzing(true);
+        const promise = analyzeFeedback(currentProject.id, textInput);
+
+        const result = await promise;
+        toast.promise(
+          promise.catch((error) => {
+            throw new Error(getErrorMessage(error));
+          }),
+          {
+            loading: "Analyzing feedback...",
+            success: "Features generated",
+            error: (err) => err.message,
+          },
+        );
+
+        if (!result) return; // Added guard
+
+        const tasksStore = useTasksStore.getState();
+
+        const mappedFeatures =
+          (result as any).featureIdeas?.map((f: any) => {
+            const tasks = f.engineeringTasks || [];
+            tasksStore.setTasks(f._id, tasks);
+
+            return {
+              id: f._id,
+              title: f.title,
+              description: f.justification || "",
+              feedback: f.feedback,
+              engineeringTasks: [],
+            };
+          }) || [];
+
+        useFeaturesStore
+          .getState()
+          .setFeatures(currentProject.id, (result as any)._id, mappedFeatures);
+      }
 
       setSelectedFile(null);
       setTextInput("");
-    } catch {
-      toast.error("Upload failed");
+    } catch (error) {
+      toast.error(getErrorMessage(error)); // Improved fallback
     } finally {
       setIsUploading(false);
+      setIsAnalyzing(false);
     }
   };
 
   const handleSubmit = async () => {
-    if (!currentProject) return;
-
-    if (!textInput.trim()) {
-      toast.error("Please enter a question for analysis");
+    if (!currentProject || !textInput.trim()) {
+      toast.warning("Please enter text to analyze"); // Added validation feedback
       return;
     }
 
     try {
       setIsAnalyzing(true);
 
-      const result = await analyzeFeedback(currentProject.id, textInput);
+        const promise = analyzeFeedback(currentProject.id, textInput);
 
-      const tasksStore = useTasksStore.getState(); // ✅ NEW
+        const result = await promise;
+        toast.promise(
+        analyzeFeedback(currentProject.id, textInput).catch((error) => {
+          throw new Error(getErrorMessage(error));
+        }),
+        {
+          loading: "Analyzing feedback...",
+          success: "Features generated",
+          error: (err) => err.message,
+        },
+      );
+
+      if (!result) return;
+
+      const tasksStore = useTasksStore.getState();
 
       const mappedFeatures =
         (result as any).featureIdeas?.map((f: any) => {
           const tasks = f.engineeringTasks || [];
-
-          // ✅ hydrate tasks
           tasksStore.setTasks(f._id, tasks);
 
           return {
@@ -189,11 +273,9 @@ function RouteComponent() {
 
       useFeaturesStore
         .getState()
-        .setFeatures(currentProject.id, result._id, mappedFeatures);
-
-      toast.success("Features generated successfully");
-    } catch {
-      toast.error("Failed to analyze feedback");
+        .setFeatures(currentProject.id, (result as any)._id, mappedFeatures);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     } finally {
       setIsAnalyzing(false);
     }
@@ -203,37 +285,47 @@ function RouteComponent() {
     <>
       <SiteHeader heading={currentProject?.name || "Project"} />
 
-      <div className="p-4">
-        <h3 className="mx-auto w-full flex justify-center">
-          <span>Generate Features Idea</span>
-        </h3>
+      <div className="p-4 space-y-8">
+        {!shouldHideUpload && (
+          <>
+            <h3 className="text-center text-lg font-semibold">
+              Generate Features Idea
+            </h3>
+            <div className="flex py-6 w-full justify-center gap-6 items-start flex-col sm:flex-row">
+              <div className="w-full max-w-md">
+                <FileUploadDropzone1
+                  onFileSelect={(file) => {
+                    if (!file) {
+                      toast.error("Please upload CSV or TXT file");
+                      return;
+                    }
+                    if (!isValidFile(file)) {
+                      toast.error("Only CSV or TXT files are allowed");
+                      return;
+                    }
+                    setSelectedFile(file);
+                  }}
+                />
+              </div>
 
-        <div className="flex py-10 w-full justify-center gap-6 items-end flex-col sm:flex-row">
-          {/* A upload box */}
-          <FileUploadDropzone1 onFileSelect={setSelectedFile} />
-          {/* Text area */}
-          <TextareaFrom1 onTextChange={setTextInput} />
-        </div>
+              <div className="w-full max-w-md">
+                <TextareaFrom1 onTextChange={setTextInput} />
+              </div>
+            </div>
 
-        <div className="pb-5 -mt-5 w-full flex gap-6 justify-center items-center">
-          <Button
-            className="cursor-pointer"
-            onClick={handleUpload}
-            disabled={isUploading}
-          >
-            {isUploading ? "Uploading..." : "Upload"}
-          </Button>
+            <div className="flex gap-6 justify-center">
+              <Button onClick={handleUpload} disabled={isUploading}>
+                {isUploading ? "Uploading..." : "Upload"}
+              </Button>
 
-          <Button
-            className="cursor-pointer"
-            onClick={handleSubmit}
-            disabled={isAnalyzing}
-          >
-            {isAnalyzing ? "Analyzing..." : "Submit"}
-          </Button>
-        </div>
+              <Button onClick={handleSubmit} disabled={isAnalyzing}>
+                {isAnalyzing ? "Analyzing..." : "Submit"}
+              </Button>
+            </div>
+          </>
+        )}
 
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid mt-4 gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {features?.length ? (
             features.map((feature) => (
               <CardStandard1

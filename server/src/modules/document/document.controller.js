@@ -3,7 +3,6 @@ import csv from "csv-parser";
 import Document from "./document.model.js";
 
 export const uploadDocument = async (req, res) => {
-  console.log(req);
   try {
     const { projectId, text } = req.body;
 

@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
 import { useState } from "react";
+import { prefetchTasksIfNeeded } from "@/lib/prefetch-tasks";
 
 export const Route = createFileRoute(
   "/(non-public)/dashboard/$projectId/feature/$featureId/",
@@ -44,17 +45,14 @@ export const Route = createFileRoute(
       projectStore.setCurrentProject(project);
     }
 
-    console.log("Feature loader: projectId", projectId, "featureId", featureId);
-    console.log("Feature loader: currentProject", project);
-
     // =========================
     // 2. Check if feature exists in store
     // =========================
     const features = featureStore.featuresByProject[projectId] || [];
-    console.log("Feature loader: features in store", features);
-    let feature = features.find((f) => f.id === featureId);
-    console.log("Feature loader: feature found in store", feature);
 
+    let feature = features.find((f) => f.id === featureId);
+
+    
     // =========================
     // 3. If missing → fetch results or feature
     // =========================
@@ -85,19 +83,16 @@ export const Route = createFileRoute(
 
           // 🔁 retry after hydration
           feature = mappedFeatures.find((f: Feature) => f.id === featureId);
-          console.log("Feature loader: feature after results", feature);
         }
       } catch (error) {
-        console.log("Loader: Error fetching results for feature", error);
+        console.log(error);
         // Continue without results
       }
 
       // If still not found, try to fetch the feature individually
       if (!feature) {
-        console.log("Feature loader: trying to fetch feature individually");
         try {
           const fetchedFeature: any = await getFeature(featureId);
-          console.log("Feature loader: fetched feature", fetchedFeature);
           // Assuming the feature has the structure
           feature = {
             id: fetchedFeature.id || fetchedFeature._id,
@@ -107,7 +102,6 @@ export const Route = createFileRoute(
             feedback: fetchedFeature.feedback,
             engineeringTasks: fetchedFeature.engineeringTasks || [],
           };
-          console.log("Feature loader: mapped feature", feature);
           // Set it in the store
           const existingFeatures =
             featureStore.featuresByProject[projectId] || [];
@@ -116,8 +110,11 @@ export const Route = createFileRoute(
             feature,
           ]);
         } catch (error) {
-          console.log("Loader: Error fetching feature", error);
-          // Feature not found, will redirect below
+          console.log(error);
+          throw redirect({
+            to: "/dashboard/$projectId",
+            params: { projectId },
+          });
         }
       }
     }
@@ -126,9 +123,14 @@ export const Route = createFileRoute(
     // 4. Still not found → redirect
     // =========================
     if (!feature) {
-      console.log("Feature not found, redirecting to project");
       throw redirect({ to: "/dashboard/$projectId", params: { projectId } });
     }
+
+    // =========================
+    // 5. Prefetch tasks (RUN ONCE)
+    // =========================
+    const resultId = useFeaturesStore.getState().resultIdByProject[projectId];
+    await prefetchTasksIfNeeded(resultId, featureId, feature.feedback);
 
     return null;
   },
@@ -139,7 +141,6 @@ export const Route = createFileRoute(
 
   component: RouteComponent,
 });
-
 function RouteComponent() {
   const { projectId, featureId } = Route.useParams();
 
@@ -188,12 +189,12 @@ function RouteComponent() {
 
       const mappedTasks = rawTasks.map((t: any, index: number) => ({
         id: `${featureId}-${index}`,
-        title: t.task,
-        description: `Estimate: ${t.estimate} • Priority: ${t.priority}`,
-        status: "task",
+        task: t.task,
+        estimate: t.estimate,
+        priority: t.priority,
       }));
 
-      setTasks(featureId, mappedTasks);
+      setTasks(featureId, mappedTasks as any);
       toast.success("Tasks generated");
     } catch {
       toast.error("Failed to generate tasks");
@@ -210,7 +211,7 @@ function RouteComponent() {
     <>
       <SiteHeader heading={feature?.title || "Feature"} />
 
-      <div className="p-6 flex gap-6">
+      <div className="p-6 flex gap-6 flex-col xl:flex-row">
         {/* LEFT PANEL */}
         <Card className="w-100 h-fit">
           <CardHeader>
@@ -244,7 +245,11 @@ function RouteComponent() {
 
             {/* GENERATE TASK BUTTON */}
             {isAccepted && tasksCount === 0 && (
-              <Button disabled={loading} onClick={handleGenerateTasks} className="cursor-pointer">
+              <Button
+                disabled={loading}
+                onClick={handleGenerateTasks}
+                className="cursor-pointer"
+              >
                 {loading ? "Generating..." : "Generate Tasks"}
               </Button>
             )}
@@ -269,12 +274,32 @@ function RouteComponent() {
                   </CardTitle>
                 </CardHeader>
 
-                <CardContent className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    {task.description || "No description"}
-                  </p>
+                <CardContent className="space-y-3">
+                  {/* Estimate & Priority */}
+                  {task.task && (
+                    <p className="text-sm text-muted-foreground">{task.task}</p>
+                  )}
+                  <div className="flex gap-2 flex-wrap">
+                    {task.estimate && (
+                      <Badge variant="secondary">⏱ {task.estimate}</Badge>
+                    )}
 
-                  {/* Optional fields if exist */}
+                    {task.priority && (
+                      <Badge
+                        variant={
+                          task.priority === "high"
+                            ? "default"
+                            : task.priority === "medium"
+                              ? "destructive"
+                              : "outline"
+                        }
+                      >
+                        {task.priority}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Status */}
                   {task.status && (
                     <Badge variant="outline">{task.status}</Badge>
                   )}
