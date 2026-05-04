@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import {

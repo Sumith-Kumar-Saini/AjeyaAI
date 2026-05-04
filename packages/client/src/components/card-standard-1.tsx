@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useNavigate } from "@tanstack/react-router";
 
 export const title = "Standard Card";
 
@@ -17,9 +18,11 @@ interface Props {
   content: string;
   feedback: "neutral" | "accepted" | "rejected";
   onAction: (value: "accept" | "reject") => void;
+  ids: { project: string; feature: string };
 }
 
 const CardStandard1 = ({
+  ids,
   title,
   description,
   content,
@@ -29,8 +32,10 @@ const CardStandard1 = ({
   const isAccepted = feedback === "accepted";
   const isRejected = feedback === "rejected";
 
+  const navigate = useNavigate();
+
   const handleReject = () => {
-    console.log(isRejected)
+    console.log(isRejected);
     if (isRejected) return; // extra safety
     onAction("reject");
   };
@@ -55,27 +60,53 @@ const CardStandard1 = ({
         )}
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="mt-auto">
         <p>{content}</p>
       </CardContent>
 
-      <CardFooter className="flex justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleReject}
-          disabled={isRejected}
-        >
-          Reject
-        </Button>
+      <CardFooter className="flex justify-between ">
+        {isAccepted && !isRejected ? (
+          <Button
+            type="button"
+            className="cursor-pointer"
+            onClick={() =>
+              navigate({
+                to: "/dashboard/$projectId/feature/$featureId",
+                params: { projectId: ids.project, featureId: ids.feature },
+              })
+            }
+          >
+            View Feature
+          </Button>
+        ) : isRejected ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="cursor-not-allowed"
+            disabled
+          >
+            Rejected
+          </Button>
+        ) : (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleReject}
+              className="cursor-pointer"
+            >
+              Reject
+            </Button>
 
-        <Button
-          type="button"
-          onClick={handleAccept}
-          disabled={isAccepted}
-        >
-          Accept
-        </Button>
+            <Button
+              type="button"
+              onClick={handleAccept}
+              className="cursor-pointer"
+            >
+              Accept
+            </Button>
+          </>
+        )}
       </CardFooter>
     </Card>
   );

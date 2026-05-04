@@ -2,6 +2,7 @@ import { ProjectCards } from "@/components/project-cards";
 import { SiteHeader } from "@/components/site-header";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useProjectsStore } from "@/stores/projectStore";
+import { useFeaturesStore } from "@/stores/featuresStore"; // ✅ NEW
 
 export const Route = createLazyFileRoute("/(non-public)/dashboard/projects/")({
   component: RouteComponent,
@@ -11,6 +12,9 @@ function RouteComponent() {
   const projects = useProjectsStore((s) => s.projects);
   const loading = useProjectsStore((s) => s.loading);
 
+  const getFeatureCount = (projectId: string) =>
+    useFeaturesStore.getState().featuresByProject[projectId]?.length || 0;
+
   return (
     <>
       <SiteHeader heading="Projects" />
@@ -18,8 +22,6 @@ function RouteComponent() {
       <div className="flex flex-1 flex-col">
         <div className="@container/main flex flex-1 flex-col gap-2">
           <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-            
-            {/* Loading State */}
             {loading ? (
               <div className="text-center text-muted-foreground">
                 Loading projects...
@@ -34,7 +36,7 @@ function RouteComponent() {
                   id: p.id,
                   name: p.name,
                   description: p.description,
-                  featureCount: 0, // until backend provides this
+                  featureCount: getFeatureCount(p.id),
                   createdAt: new Date(p.createdAt),
                 }))}
               />

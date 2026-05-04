@@ -48,6 +48,7 @@ export interface Feature {
   id: string;
   name: string;
   description: string;
+  engineeringTasks?: EngineeringTask[];
 }
 
 export interface EngineeringTask {
@@ -80,8 +81,8 @@ export interface Document {
 
 export interface UploadDocumentPayload {
   projectId: string;
-  file?: File;     // optional (for file upload)
-  text?: string;   // optional (for pasted text)
+  file?: File; // optional (for file upload)
+  text?: string; // optional (for pasted text)
 }
 
 /* =========================
@@ -101,9 +102,6 @@ export async function login(email: string, password: string): Promise<void> {
   const data = await request<AuthResponse>(
     api.post(ENDPOINTS.LOGIN, { email, password }),
   );
-
-  // TODO: remove this temp code
-  console.log(data);
 
   useAuthStore.getState().setAccessToken(data.accessToken);
 }
@@ -176,9 +174,13 @@ export async function generateTasks(
   resultId: string,
   featureId: string,
 ): Promise<EngineeringTask[]> {
-  return request<EngineeringTask[]>(
-    api.post(`${ENDPOINTS.TASKS}/${resultId}/${featureId}`),
+  const feature = await request<Feature>(
+    api.post(`${ENDPOINTS.TASKS}/${resultId}/generate`, {
+      featureId,
+    }),
   );
+
+  return feature.engineeringTasks || [];
 }
 
 /* =========================

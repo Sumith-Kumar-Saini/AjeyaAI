@@ -42,7 +42,7 @@ function RouteComponent() {
       toast.error(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
-        error?.response?.data?.message || "Login failed. Please try again.",
+        error?.response?.data?.message || error?.error || "Login failed. Please try again.",
       );
     } finally {
       setLoading(false);

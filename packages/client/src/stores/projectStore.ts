@@ -15,6 +15,7 @@ interface ProjectsState {
 
   loading: boolean;
   error: string | null;
+  isFetched: boolean;
 
   fetchProjects: () => Promise<void>;
   addProject: (data: { name: string; description?: string }) => Promise<void>;
@@ -32,20 +33,19 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
 
   loading: false,
   error: null,
+  isFetched: false, // ✅
 
-  /* =========================
-     FETCH ALL PROJECTS
-  ========================= */
   fetchProjects: async () => {
     try {
       set({ loading: true, error: null });
 
       const projects = await getProjects();
 
-      set({ projects });
+      set({ projects, isFetched: true }); // ✅
     } catch (err: any) {
       set({
         error: err?.response?.data?.error || "Failed to fetch projects",
+        isFetched: true, // still mark as fetched
       });
     } finally {
       set({ loading: false });

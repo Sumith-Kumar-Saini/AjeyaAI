@@ -7,13 +7,15 @@ import CardStandard1 from "@/components/card-standard-1";
 import FileUploadDropzone1 from "@/components/file-upload-dropzone-1";
 import { SiteHeader } from "@/components/site-header";
 import TextareaFrom1 from "@/components/textarea-form-1";
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate, redirect } from "@tanstack/react-router";
 import { uploadDocument } from "@/lib/api-endpoints";
 import { useProjectsStore } from "@/stores/projectStore";
 import ProjectLoading from "@/components/project-loading";
 import { Button } from "@/components/ui/button";
 import { getResults } from "@/lib/api-endpoints";
 import { useState } from "react";
+import { useTasksStore } from "@/stores/tasksStore";
+import type { Project } from "@/lib/api-projects";
 
 export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
   loader: async ({ params }) => {
@@ -21,32 +23,41 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
 
     const projectStore = useProjectsStore.getState();
     const featureStore = useFeaturesStore.getState();
+    const tasksStore = useTasksStore.getState();
 
     const project = projectStore.projects.find((p) => p.id === projectId);
 
-    if (!project) {
-      throw new Error("Project not found");
+    // ✅ This should ALWAYS exist now
+    if (!project || project.id !== projectId) {
+      throw redirect({ to: "/dashboard" });
     }
 
+    // ✅ Set current project
     projectStore.setCurrentProject(project);
 
-    // 🔥 Fetch results for this project
+    // =========================
+    // FETCH RESULTS + HYDRATE
+    // =========================
     const results = await getResults(projectId);
 
     if (results.length > 0) {
       const latest = results[0];
 
-      // ⚠️ backend uses featureIdeas not features
       const mappedFeatures =
-        (latest as any).featureIdeas?.map((f: any) => ({
-          id: f._id,
-          title: f.title,
-          description: f.justification || "",
-          feedback: f.feedback,
-          engineeringTasks: f.engineeringTasks || [],
-        })) || [];
+        (latest as any).featureIdeas?.map((f: any) => {
+          const tasks = f.engineeringTasks || [];
 
-        console.log(results)
+          // ✅ hydrate tasks store
+          tasksStore.setTasks(f._id, tasks);
+
+          return {
+            id: f._id,
+            title: f.title,
+            description: f.justification || "",
+            feedback: f.feedback,
+            engineeringTasks: [], // 🚫 no duplication
+          };
+        }) || [];
 
       featureStore.setFeatures(projectId, latest._id, mappedFeatures);
     }
@@ -62,8 +73,9 @@ function RouteComponent() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [textInput, setTextInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const currentProject = useProjectsStore((s) => s.currentProject);
+  const currentProject = useProjectsStore<Project>((s) => s.currentProject!);
   const features = useFeaturesStore(
     (s) => s.featuresByProject[currentProject?.id || ""],
   );
@@ -80,12 +92,12 @@ function RouteComponent() {
   ) => {
     // if (!resultId || !currentProject) return;
     if (!currentProject) return;
-    
+
     const feedback = action === "accept" ? "accepted" : "rejected";
-    
+
     try {
       await updateFeedback(resultId, featureId, feedback);
-      
+
       // 🔥 optimistic UI update
       updateLocalFeedback(currentProject.id, featureId, feedback);
 
@@ -114,10 +126,9 @@ function RouteComponent() {
 
       toast.success("Document uploaded successfully");
 
-      // reset state
       setSelectedFile(null);
       setTextInput("");
-    } catch (err) {
+    } catch {
       toast.error("Upload failed");
     } finally {
       setIsUploading(false);
@@ -133,31 +144,37 @@ function RouteComponent() {
     }
 
     try {
-      setIsUploading(true);
+      setIsAnalyzing(true);
 
-      // 🔥 Call AI analysis
       const result = await analyzeFeedback(currentProject.id, textInput);
 
-      // 🔥 Map backend response (same as loader logic)
-      const mappedFeatures =
-        (result as any).featureIdeas?.map((f: any) => ({
-          id: f._id,
-          title: f.title,
-          description: f.justification || "",
-          feedback: f.feedback,
-          engineeringTasks: f.engineeringTasks || [],
-        })) || [];
+      const tasksStore = useTasksStore.getState(); // ✅ NEW
 
-      // 🔥 Update store
+      const mappedFeatures =
+        (result as any).featureIdeas?.map((f: any) => {
+          const tasks = f.engineeringTasks || [];
+
+          // ✅ hydrate tasks
+          tasksStore.setTasks(f._id, tasks);
+
+          return {
+            id: f._id,
+            title: f.title,
+            description: f.justification || "",
+            feedback: f.feedback,
+            engineeringTasks: [],
+          };
+        }) || [];
+
       useFeaturesStore
         .getState()
         .setFeatures(currentProject.id, result._id, mappedFeatures);
 
       toast.success("Features generated successfully");
-    } catch (err) {
+    } catch {
       toast.error("Failed to analyze feedback");
     } finally {
-      setIsUploading(false);
+      setIsAnalyzing(false);
     }
   };
 
@@ -185,12 +202,13 @@ function RouteComponent() {
           >
             {isUploading ? "Uploading..." : "Upload"}
           </Button>
+
           <Button
             className="cursor-pointer"
             onClick={handleSubmit}
-            disabled={isUploading}
+            disabled={isAnalyzing}
           >
-            {isUploading ? "Uploading..." : "Submit"}
+            {isAnalyzing ? "Analyzing..." : "Submit"}
           </Button>
         </div>
 
@@ -204,6 +222,7 @@ function RouteComponent() {
                 content="AI Suggested Feature"
                 feedback={feature.feedback}
                 onAction={(action) => handleAction(feature.id, action)}
+                ids={{ feature: feature.id, project: currentProject.id }}
               />
             ))
           ) : (
