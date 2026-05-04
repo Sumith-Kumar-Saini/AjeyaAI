@@ -210,7 +210,7 @@ function RouteComponent() {
     <>
       <SiteHeader heading={feature?.title || "Feature"} />
 
-      <div className="p-6 flex gap-6">
+      <div className="p-6 flex gap-6 flex-col xl:flex-row">
         {/* LEFT PANEL */}
         <Card className="w-100 h-fit">
           <CardHeader>

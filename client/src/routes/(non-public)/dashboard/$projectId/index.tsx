@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { toast } from "sonner";
 import { analyzeFeedback, updateFeedback, type Result } from "@/lib/api-endpoints";
 import { useFeaturesStore } from "@/stores/featuresStore";
@@ -86,15 +84,12 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
 });
 
 
-
-
-
-
 function RouteComponent() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [textInput, setTextInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
 
   const currentProject = useProjectsStore<Project>((s) => s.currentProject!);
   const features = useFeaturesStore(
@@ -208,11 +203,15 @@ function RouteComponent() {
           <span>Generate Features Idea</span>
         </h3>
 
-        <div className="flex py-10 w-full justify-center gap-6 items-end flex-col sm:flex-row">
-          {/* A upload box */}
-          <FileUploadDropzone1 onFileSelect={setSelectedFile} />
-          {/* Text area */}
-          <TextareaFrom1 onTextChange={setTextInput} />
+        <div className="flex py-10 w-full justify-center gap-6 items-start flex-col sm:flex-row">
+          <div className="w-full max-w-md">
+            {/* A upload box */}
+            <FileUploadDropzone1 onFileSelect={setSelectedFile} />
+          </div>
+          <div className="w-full max-w-md">
+            {/* Text area */}
+            <TextareaFrom1 onTextChange={setTextInput} />
+          </div>
         </div>
 
         <div className="pb-5 -mt-5 w-full flex gap-6 justify-center items-center">
