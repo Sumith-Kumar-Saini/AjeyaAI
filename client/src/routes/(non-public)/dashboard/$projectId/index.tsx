@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { toast } from "sonner";
 import { analyzeFeedback, updateFeedback } from "@/lib/api-endpoints";
 import { useFeaturesStore } from "@/stores/featuresStore";
@@ -16,6 +14,7 @@ import { getResults } from "@/lib/api-endpoints";
 import { useState } from "react";
 import { useTasksStore } from "@/stores/tasksStore";
 import type { Project } from "@/lib/api-projects";
+import ensureProject from "@/lib/ensure-projects";
 
 export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
   loader: async ({ params }) => {
@@ -25,10 +24,19 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
     const featureStore = useFeaturesStore.getState();
     const tasksStore = useTasksStore.getState();
 
-    const project = projectStore.projects.find((p) => p.id === projectId);
+    console.log("Loader: Ensuring project", projectId);
+    let project;
+    try {
+      project = await ensureProject(projectId);
+    } catch (error) {
+      console.log("Loader: Error ensuring project", error);
+      throw redirect({ to: "/dashboard" });
+    }
+    console.log("Loader: Project found", project);
 
     // ✅ This should ALWAYS exist now
     if (!project || project.id !== projectId) {
+      console.log("Loader: Redirecting because project not found");
       throw redirect({ to: "/dashboard" });
     }
 
@@ -38,7 +46,13 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
     // =========================
     // FETCH RESULTS + HYDRATE
     // =========================
-    const results = await getResults(projectId);
+    let results = [];
+    try {
+      results = await getResults(projectId);
+    } catch (error) {
+      console.log("Loader: Error fetching results", error);
+      // Continue without results
+    }
 
     if (results.length > 0) {
       const latest = results[0];
@@ -68,6 +82,11 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
   pendingComponent: () => <ProjectLoading />,
   component: RouteComponent,
 });
+
+
+
+
+
 
 function RouteComponent() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);

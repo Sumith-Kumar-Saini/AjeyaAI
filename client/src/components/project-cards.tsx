@@ -39,8 +39,8 @@ export function ProjectCards({ projects }: { projects: Project[] }) {
               </p>
 
               {/* Description */}
-              <CardDescription className="line-clamp-2">
-                {project.description}
+              <CardDescription className="line-clamp-2 min-h-[3rem]">
+                {project.description || ""}
               </CardDescription>
 
               {/* Feature Count */}

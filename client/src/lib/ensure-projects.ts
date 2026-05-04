@@ -1,3 +1,5 @@
+
+
 import { useProjectsStore } from "@/stores/projectStore";
 
 export default async function ensureProject(projectId: string) {
@@ -12,3 +14,5 @@ export default async function ensureProject(projectId: string) {
 
   return project;
 }
+
+

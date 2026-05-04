@@ -154,7 +154,7 @@ export async function getResult(resultId: string): Promise<Result> {
 }
 
 export async function getFeature(featureId: string): Promise<Feature> {
-  return request<Feature>(api.get(`${ENDPOINTS.FEATURES}/${featureId}`));
+  return request<Feature>(api.get(`${ENDPOINTS.RESULTS}/feature/${featureId}`));
 }
 
 export async function updateFeedback(

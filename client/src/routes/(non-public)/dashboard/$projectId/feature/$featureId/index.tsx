@@ -3,10 +3,12 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useFeaturesStore } from "@/stores/featuresStore";
 import { useProjectsStore } from "@/stores/projectStore";
 import { useTasksStore } from "@/stores/tasksStore";
+import ensureProject from "@/lib/ensure-projects";
 import {
   updateFeedback,
   generateTasks,
   getResults,
+  getFeature,
   type Feature,
 } from "@/lib/api-endpoints";
 import { Button } from "@/components/ui/button";
@@ -28,24 +30,32 @@ export const Route = createFileRoute(
     // =========================
     // 1. Ensure project exists
     // =========================
-    const project = projectStore.currentProject;
+    let project = projectStore.currentProject;
 
-    console.log(projectStore.projects)
-
+    // If currentProject is not set or doesn't match, ensure the project exists
     if (!project || project.id !== projectId) {
-      throw redirect({ to: "/dashboard" });
+      project = await ensureProject(projectId);
+      
+      if (!project) {
+        throw redirect({ to: "/dashboard" });
+      }
+
+      projectStore.setCurrentProject(project);
     }
 
-    projectStore.setCurrentProject(project);
+    console.log("Feature loader: projectId", projectId, "featureId", featureId);
+    console.log("Feature loader: currentProject", project);
 
     // =========================
     // 2. Check if feature exists in store
     // =========================
     const features = featureStore.featuresByProject[projectId] || [];
+    console.log("Feature loader: features in store", features);
     let feature = features.find((f) => f.id === featureId);
+    console.log("Feature loader: feature found in store", feature);
 
     // =========================
-    // 3. If missing → fetch results
+    // 3. If missing → fetch results or feature
     // =========================
     if (!feature) {
       try {
@@ -74,9 +84,35 @@ export const Route = createFileRoute(
 
           // 🔁 retry after hydration
           feature = mappedFeatures.find((f: Feature) => f.id === featureId);
+          console.log("Feature loader: feature after results", feature);
         }
-      } catch {
-        throw redirect({ to: "/dashboard/$projectId", params: { projectId } });
+      } catch (error) {
+        console.log("Loader: Error fetching results for feature", error);
+        // Continue without results
+      }
+
+      // If still not found, try to fetch the feature individually
+      if (!feature) {
+        console.log("Feature loader: trying to fetch feature individually");
+        try {
+          const fetchedFeature = await getFeature(featureId);
+          console.log("Feature loader: fetched feature", fetchedFeature);
+          // Assuming the feature has the structure
+          feature = {
+            id: fetchedFeature.id || fetchedFeature._id,
+            title: fetchedFeature.title,
+            description: fetchedFeature.justification || fetchedFeature.description || "",
+            feedback: fetchedFeature.feedback,
+            engineeringTasks: fetchedFeature.engineeringTasks || [],
+          };
+          console.log("Feature loader: mapped feature", feature);
+          // Set it in the store
+          const existingFeatures = featureStore.featuresByProject[projectId] || [];
+          featureStore.setFeatures(projectId, "", [...existingFeatures, feature]);
+        } catch (error) {
+          console.log("Loader: Error fetching feature", error);
+          // Feature not found, will redirect below
+        }
       }
     }
 
@@ -84,7 +120,8 @@ export const Route = createFileRoute(
     // 4. Still not found → redirect
     // =========================
     if (!feature) {
-      throw redirect({ to: "/dashboard/$projectId", params: { projectId } });
+      console.log("Feature not found, redirecting to project");
+      throw redirect({ to: `/dashboard/${projectId}` });
     }
 
     return null;

@@ -2,7 +2,7 @@ import { ProjectCards } from "@/components/project-cards";
 import { SiteHeader } from "@/components/site-header";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useProjectsStore } from "@/stores/projectStore";
-import { useFeaturesStore } from "@/stores/featuresStore"; // ✅ NEW
+import { useFeaturesStore } from "@/stores/featuresStore";
 
 export const Route = createLazyFileRoute("/(non-public)/dashboard/projects/")({
   component: RouteComponent,
