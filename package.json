@@ -3,11 +3,6 @@
   "version": "1.0.0",
   "description": "AI co-pilot for product decisions. Upload feedback → ask → get a prioritized roadmap.",
   "scripts": {
-    "dev": "concurrently \"npm run dev -w packages/server\" \"npm run dev -w packages/client\"",
-    "build": "npm run build --workspaces",
-    "lint": "npm run lint --workspaces",
-    "typecheck": "npm run typecheck --workspaces",
-    "test": "npm run test -w packages/server",
     "docker:dev": "docker-compose up --build",
     "docker:down": "docker-compose down"
   },
@@ -16,9 +11,6 @@
     "url": "git+https://github.com/Sumith-Kumar-Saini/AjeyaAI.git"
   },
   "license": "MIT",
-  "workspaces": [
-    "packages/*"
-  ],
   "bugs": {
     "url": "https://github.com/Sumith-Kumar-Saini/AjeyaAI/issues"
   },

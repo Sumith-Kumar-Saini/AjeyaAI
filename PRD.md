@@ -1,4 +1,4 @@
-# 🧠 Ajeya_AI — Product Requirements Document (PRD)
+# 🧠 Ajeya AI — Product Requirements Document (PRD)
 
 > Full-loop AI co-pilot for product decisions
 
