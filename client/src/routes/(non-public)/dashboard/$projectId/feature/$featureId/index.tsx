@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
+import { useState } from "react";
 
 export const Route = createFileRoute(
   "/(non-public)/dashboard/$projectId/feature/$featureId/",
@@ -34,8 +35,8 @@ export const Route = createFileRoute(
 
     // If currentProject is not set or doesn't match, ensure the project exists
     if (!project || project.id !== projectId) {
-      project = await ensureProject(projectId);
-      
+      project = (await ensureProject(projectId)) || null;
+
       if (!project) {
         throw redirect({ to: "/dashboard" });
       }
@@ -95,20 +96,25 @@ export const Route = createFileRoute(
       if (!feature) {
         console.log("Feature loader: trying to fetch feature individually");
         try {
-          const fetchedFeature = await getFeature(featureId);
+          const fetchedFeature: any = await getFeature(featureId);
           console.log("Feature loader: fetched feature", fetchedFeature);
           // Assuming the feature has the structure
           feature = {
             id: fetchedFeature.id || fetchedFeature._id,
             title: fetchedFeature.title,
-            description: fetchedFeature.justification || fetchedFeature.description || "",
+            description:
+              fetchedFeature.justification || fetchedFeature.description || "",
             feedback: fetchedFeature.feedback,
             engineeringTasks: fetchedFeature.engineeringTasks || [],
           };
           console.log("Feature loader: mapped feature", feature);
           // Set it in the store
-          const existingFeatures = featureStore.featuresByProject[projectId] || [];
-          featureStore.setFeatures(projectId, "", [...existingFeatures, feature]);
+          const existingFeatures =
+            featureStore.featuresByProject[projectId] || [];
+          featureStore.setFeatures(projectId, "", [
+            ...existingFeatures,
+            feature,
+          ]);
         } catch (error) {
           console.log("Loader: Error fetching feature", error);
           // Feature not found, will redirect below
@@ -121,7 +127,7 @@ export const Route = createFileRoute(
     // =========================
     if (!feature) {
       console.log("Feature not found, redirecting to project");
-      throw redirect({ to: `/dashboard/${projectId}` });
+      throw redirect({ to: "/dashboard/$projectId", params: { projectId } });
     }
 
     return null;
@@ -141,6 +147,7 @@ function RouteComponent() {
   const features = useFeaturesStore(
     (s) => s.featuresByProject[projectId] || [],
   );
+  const tasks = useTasksStore((s) => s.tasksByFeature[featureId] || []);
 
   const resultId = useFeaturesStore((s) => s.resultIdByProject[projectId]);
 
@@ -149,6 +156,8 @@ function RouteComponent() {
   const tasksCount = useTasksStore((s) => s.getTasksCount(featureId));
 
   const setTasks = useTasksStore((s) => s.setTasks);
+
+  const [loading, setLoading] = useState(false);
 
   if (!feature) return <div>Feature not found</div>;
 
@@ -173,14 +182,23 @@ function RouteComponent() {
   const handleGenerateTasks = async () => {
     if (!resultId) return;
 
+    setLoading(true);
     try {
-      const tasks = await generateTasks(resultId, featureId);
+      const rawTasks = await generateTasks(resultId, featureId);
 
-      setTasks(featureId, tasks);
+      const mappedTasks = rawTasks.map((t: any, index: number) => ({
+        id: `${featureId}-${index}`,
+        title: t.task,
+        description: `Estimate: ${t.estimate} • Priority: ${t.priority}`,
+        status: "task",
+      }));
 
+      setTasks(featureId, mappedTasks);
       toast.success("Tasks generated");
     } catch {
       toast.error("Failed to generate tasks");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -194,7 +212,7 @@ function RouteComponent() {
 
       <div className="p-6 flex gap-6">
         {/* LEFT PANEL */}
-        <Card className="w-100">
+        <Card className="w-100 h-fit">
           <CardHeader>
             <CardTitle>{feature.title}</CardTitle>
           </CardHeader>
@@ -226,8 +244,8 @@ function RouteComponent() {
 
             {/* GENERATE TASK BUTTON */}
             {isAccepted && tasksCount === 0 && (
-              <Button className="cursor-pointer" onClick={handleGenerateTasks}>
-                Generate Tasks
+              <Button disabled={loading} onClick={handleGenerateTasks} className="cursor-pointer">
+                {loading ? "Generating..." : "Generate Tasks"}
               </Button>
             )}
 
@@ -241,8 +259,33 @@ function RouteComponent() {
         </Card>
 
         {/* RIGHT SIDE (future tasks list) */}
-        <div className="flex-1">
-          {/* You can render task list here later */}
+        <div className="flex-1 space-y-4">
+          {tasks.length > 0 ? (
+            tasks.map((task: any, index: number) => (
+              <Card key={task.id || index}>
+                <CardHeader>
+                  <CardTitle className="text-base">
+                    {task.title || `Task ${index + 1}`}
+                  </CardTitle>
+                </CardHeader>
+
+                <CardContent className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    {task.description || "No description"}
+                  </p>
+
+                  {/* Optional fields if exist */}
+                  {task.status && (
+                    <Badge variant="outline">{task.status}</Badge>
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div className="text-sm text-muted-foreground">
+              No tasks generated yet
+            </div>
+          )}
         </div>
       </div>
     </>
