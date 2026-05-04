@@ -34,8 +34,8 @@ export const Route = createFileRoute(
 
     // If currentProject is not set or doesn't match, ensure the project exists
     if (!project || project.id !== projectId) {
-      project = await ensureProject(projectId);
-      
+      project = (await ensureProject(projectId)) || null;
+
       if (!project) {
         throw redirect({ to: "/dashboard" });
       }
@@ -95,20 +95,25 @@ export const Route = createFileRoute(
       if (!feature) {
         console.log("Feature loader: trying to fetch feature individually");
         try {
-          const fetchedFeature = await getFeature(featureId);
+          const fetchedFeature: any = await getFeature(featureId);
           console.log("Feature loader: fetched feature", fetchedFeature);
           // Assuming the feature has the structure
           feature = {
             id: fetchedFeature.id || fetchedFeature._id,
             title: fetchedFeature.title,
-            description: fetchedFeature.justification || fetchedFeature.description || "",
+            description:
+              fetchedFeature.justification || fetchedFeature.description || "",
             feedback: fetchedFeature.feedback,
             engineeringTasks: fetchedFeature.engineeringTasks || [],
           };
           console.log("Feature loader: mapped feature", feature);
           // Set it in the store
-          const existingFeatures = featureStore.featuresByProject[projectId] || [];
-          featureStore.setFeatures(projectId, "", [...existingFeatures, feature]);
+          const existingFeatures =
+            featureStore.featuresByProject[projectId] || [];
+          featureStore.setFeatures(projectId, "", [
+            ...existingFeatures,
+            feature,
+          ]);
         } catch (error) {
           console.log("Loader: Error fetching feature", error);
           // Feature not found, will redirect below
@@ -121,7 +126,7 @@ export const Route = createFileRoute(
     // =========================
     if (!feature) {
       console.log("Feature not found, redirecting to project");
-      throw redirect({ to: `/dashboard/${projectId}` });
+      throw redirect({ to: "/dashboard/$projectId", params: { projectId } });
     }
 
     return null;

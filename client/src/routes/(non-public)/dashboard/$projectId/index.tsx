@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { toast } from "sonner";
-import { analyzeFeedback, updateFeedback } from "@/lib/api-endpoints";
+import { analyzeFeedback, updateFeedback, type Result } from "@/lib/api-endpoints";
 import { useFeaturesStore } from "@/stores/featuresStore";
 import CardStandard1 from "@/components/card-standard-1";
 import FileUploadDropzone1 from "@/components/file-upload-dropzone-1";
@@ -46,7 +48,7 @@ export const Route = createFileRoute("/(non-public)/dashboard/$projectId/")({
     // =========================
     // FETCH RESULTS + HYDRATE
     // =========================
-    let results = [];
+    let results: Result[] = [];
     try {
       results = await getResults(projectId);
     } catch (error) {
